@@ -104,7 +104,7 @@ def snap_segment(
     starts = [c for c in cues if c.start <= start]
     first = starts[-1] if starts else cues[0]
     s = first.start
-    inside = [c for c in cues if c.start >= s and c.end <= end + 1.0]
+    inside = [c for c in cues if c.start >= s and c.start < end]
     if not inside:
         return None
     # end: the cue whose end is closest to the requested end
