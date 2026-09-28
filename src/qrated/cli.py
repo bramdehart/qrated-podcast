@@ -13,6 +13,8 @@ from . import audio, db
 from .analyze import analyze_new
 from .build import build_edition, rebuild_latest
 from .config import Config
+from .cover import ensure_cover
+from .feedxml import write_feed
 from .feeds import fetch_all, load_feed_specs
 from .lock import file_lock
 from .openrouter import OpenRouter
@@ -49,6 +51,13 @@ def cmd_run(cfg: Config, conn) -> None:
 def cmd_make_bed(cfg: Config, conn) -> None:
     path = audio.generate_bed(cfg, OpenRouter(cfg), force=True)
     log.info("Music bed ready: %s", path)
+
+
+def cmd_make_cover(cfg: Config, conn) -> None:
+    path = ensure_cover(cfg, OpenRouter(cfg), force=True)
+    write_feed(conn, cfg)
+    write_index(conn, cfg)
+    log.info("Cover ready: %s", path)
 
 
 def cmd_status(cfg: Config, conn) -> None:
@@ -103,7 +112,7 @@ def run_locked(cfg: Config, fn) -> None:
 
 COMMANDS = {
     "run": cmd_run, "fetch": cmd_fetch, "analyze": cmd_analyze, "build": cmd_build,
-    "rebuild": cmd_rebuild, "status": cmd_status, "make-bed": cmd_make_bed,
+    "rebuild": cmd_rebuild, "status": cmd_status, "make-bed": cmd_make_bed, "make-cover": cmd_make_cover,
 }
 
 

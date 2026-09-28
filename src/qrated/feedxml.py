@@ -9,6 +9,8 @@ from datetime import datetime, timezone
 from email.utils import format_datetime
 
 from .config import Config
+from .cover import cover_url
+from .texts import render
 
 log = logging.getLogger(__name__)
 ITUNES = "http://www.itunes.com/dtds/podcast-1.0.dtd"
@@ -37,9 +39,18 @@ def write_feed(conn: sqlite3.Connection, cfg: Config) -> str:
     ch = ET.SubElement(rss, "channel")
     ET.SubElement(ch, "title").text = cfg.feed_title
     ET.SubElement(ch, "link").text = cfg.public_base_url
-    ET.SubElement(ch, "description").text = f"{cfg.feed_title}: a daily selection of the best podcast fragments."
+    description = render(cfg.feed_description, name=cfg.listener_name, title=cfg.feed_title)
+    ET.SubElement(ch, "description").text = description
     ET.SubElement(ch, "language").text = "en"
     ET.SubElement(ch, "{%s}author" % ITUNES).text = cfg.feed_title
+    ET.SubElement(ch, "{%s}summary" % ITUNES).text = description
+    art = cover_url(cfg, absolute=True)
+    if art:
+        ET.SubElement(ch, "{%s}image" % ITUNES, {"href": art})
+        image = ET.SubElement(ch, "image")
+        ET.SubElement(image, "url").text = art
+        ET.SubElement(image, "title").text = cfg.feed_title
+        ET.SubElement(image, "link").text = cfg.public_base_url
     ET.SubElement(ch, "{%s}explicit" % ITUNES).text = "false"
     for ed in conn.execute("SELECT * FROM editions ORDER BY id DESC").fetchall():
         item = ET.SubElement(ch, "item")

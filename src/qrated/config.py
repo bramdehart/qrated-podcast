@@ -12,6 +12,15 @@ DEFAULT_INTRO = (
 )
 DEFAULT_ANNOUNCE = "{lead}, from {podcast}, the episode of {episode_date}. {intro}"
 DEFAULT_OUTRO = "That's it for today, {name}. See you tomorrow."
+DEFAULT_FEED_DESCRIPTION = (
+    "A daily AI-curated selection of the most interesting fragments from the podcasts {name} follows, "
+    "introduced by a friendly radio host."
+)
+DEFAULT_COVER_PROMPT = (
+    "Square podcast cover art for a daily personal podcast called \"{title}\". A bold, stylized letter Q "
+    "formed by flowing sound waves, vibrant violet-to-pink gradient background, modern minimal flat design, "
+    "high contrast, clean and legible at small sizes. The only text is the title \"{title}\"."
+)
 DEFAULT_MUSIC_PROMPT = (
     "instrumental chill lo-fi background, soft Rhodes chords, warm and relaxed, "
     "slow tempo, no vocals, seamless loop"
@@ -50,6 +59,9 @@ class Config:
     tz: str = "Europe/Amsterdam"
     public_base_url: str = "https://podcast.example.com"
     feed_title: str = "Q-rated"
+    feed_description: str = DEFAULT_FEED_DESCRIPTION
+    cover_model: str = "google/gemini-3.1-flash-image"
+    cover_prompt: str = DEFAULT_COVER_PROMPT
     keep_editions: int = 14
     data_dir: Path = Path("/data")
     feeds_file: Path = Path("/config/feeds.yaml")
@@ -113,6 +125,9 @@ class Config:
             tz=_env(e, "TZ", d.tz),
             public_base_url=_env(e, "PUBLIC_BASE_URL", d.public_base_url).rstrip("/"),
             feed_title=_env(e, "FEED_TITLE", d.feed_title),
+            feed_description=_env(e, "FEED_DESCRIPTION", d.feed_description),
+            cover_model=_env(e, "COVER_MODEL", d.cover_model),
+            cover_prompt=_env(e, "COVER_PROMPT", d.cover_prompt),
             keep_editions=int(_env(e, "KEEP_EDITIONS", str(d.keep_editions))),
             data_dir=Path(_env(e, "DATA_DIR", "/data")),
             feeds_file=Path(_env(e, "FEEDS_FILE", "/config/feeds.yaml")),

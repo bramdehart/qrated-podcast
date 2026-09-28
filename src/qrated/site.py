@@ -9,7 +9,8 @@ from datetime import datetime
 from zoneinfo import ZoneInfo
 
 from .config import Config
-from .texts import mmss, spoken_date
+from .cover import cover_url
+from .texts import mmss, render, spoken_date
 
 CSS = """
 :root{--bg:#f6f5f1;--fg:#1b1b1f;--muted:#6a6a72;--card:#fff;--line:#e4e2da;--soft:#eeece5;
@@ -21,6 +22,7 @@ body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.5 ui-sans-serif,s
 .wrap{max-width:860px;margin:0 auto;padding:32px 16px 72px}
 a{color:var(--accent)}button{font:inherit;color:inherit}
 .hero{display:flex;gap:20px;align-items:center;flex-wrap:wrap;margin-bottom:8px}
+.logo img{width:100%;height:100%;border-radius:inherit;object-fit:cover;display:block}
 .logo{width:88px;height:88px;border-radius:22px;flex:none;display:grid;place-items:center;color:#fff;
 font:800 44px/1 ui-sans-serif,system-ui,sans-serif;background:linear-gradient(135deg,#5a47e0,#e0477a);box-shadow:var(--shadow)}
 .hero h1{margin:0;font-size:2.2rem;letter-spacing:-.02em;line-height:1.1}
@@ -239,14 +241,14 @@ def _json_script(data) -> str:
     return f'<script type="application/json">{text}</script>'
 
 
-def _chapters(ed: sqlite3.Row, items: list[sqlite3.Row], feed_title: str) -> list[dict]:
+def _chapters(ed: sqlite3.Row, items: list[sqlite3.Row], feed_title: str, art: str | None = None) -> list[dict]:
     """Opening, one chapter per story, closing; empty for editions built before chapters existed."""
     timed = [it for it in items if it["chapter_start"] is not None and it["chapter_end"] is not None]
     if not timed or len(timed) != len(items):
         return []
     duration = ed["duration"] or timed[-1]["chapter_end"]
     chapters = [{"start": 0.0, "end": timed[0]["chapter_start"], "kind": "intro", "kicker": "Opening",
-                 "title": "Welcome to today's selection", "sub": feed_title, "art": None}]
+                 "title": "Welcome to today's selection", "sub": feed_title, "art": art}]
     for n, it in enumerate(timed, start=1):
         chapters.append({
             "start": it["chapter_start"], "end": it["chapter_end"], "kind": "item",
@@ -256,7 +258,7 @@ def _chapters(ed: sqlite3.Row, items: list[sqlite3.Row], feed_title: str) -> lis
             "art": f"covers/{it['image_file']}" if it["image_file"] else None,
         })
     chapters.append({"start": timed[-1]["chapter_end"], "end": duration, "kind": "outro", "kicker": "Closing",
-                     "title": "That's it for today", "sub": feed_title, "art": None})
+                     "title": "That's it for today", "sub": feed_title, "art": art})
     return chapters
 
 
@@ -292,6 +294,8 @@ def render_index(conn: sqlite3.Connection, cfg: Config) -> str:
     tz = ZoneInfo(cfg.tz)
     editions = conn.execute("SELECT * FROM editions ORDER BY id DESC").fetchall()
 
+    art = cover_url(cfg)
+    description = render(cfg.feed_description, name=cfg.listener_name, title=cfg.feed_title)
     cards, total_stories = [], 0
     for idx, ed in enumerate(editions):
         items = conn.execute(
@@ -305,7 +309,7 @@ def render_index(conn: sqlite3.Connection, cfg: Config) -> str:
         created = datetime.fromisoformat(ed["created_at"]).astimezone(tz)
         duration = ed["duration"] or 0
         mins = max(1, round(duration / 60))
-        chapters = _chapters(ed, items, cfg.feed_title)
+        chapters = _chapters(ed, items, cfg.feed_title, art)
 
         stack, seen = [], set()
         for it in items:
@@ -365,12 +369,19 @@ def render_index(conn: sqlite3.Connection, cfg: Config) -> str:
         '<!doctype html><html lang="en"><head><meta charset="utf-8">'
         '<meta name="viewport" content="width=device-width,initial-scale=1">'
         f"<title>{_e(cfg.feed_title)}</title>"
-        f'<meta name="description" content="{_e(cfg.feed_title)}: a daily selection of the best podcast fragments.">'
+        f'<meta name="description" content="{_e(description)}">'
+        f'<meta property="og:title" content="{_e(cfg.feed_title)}">'
+        f'<meta property="og:description" content="{_e(description)}">'
+        + (f'<meta property="og:image" content="{_e(cover_url(cfg, absolute=True))}">'
+           f'<link rel="icon" href="{_e(art)}"><link rel="apple-touch-icon" href="{_e(art)}">' if art else "")
+        +
         f'<link rel="alternate" type="application/rss+xml" title="{_e(cfg.feed_title)}" href="feed.xml">'
         f"<style>{CSS}</style></head><body><div class=\"wrap\">"
-        f'<header class="hero"><div class="logo" aria-hidden="true">Q</div><div>'
+        + (f'<header class="hero"><div class="logo"><img src="{_e(art)}" alt="{_e(cfg.feed_title)} cover"></div><div>'
+           if art else '<header class="hero"><div class="logo" aria-hidden="true">Q</div><div>')
+        +
         f"<h1>{_e(cfg.feed_title)}</h1>"
-        "<p>A daily selection of the best fragments from the podcasts I follow.</p>"
+        f"<p>{_e(description)}</p>"
         '<div class="actions"><a class="btn primary" href="feed.xml">Subscribe via RSS</a>'
         f'<button class="btn copy" data-url="{_e(feed_url)}">Copy feed URL</button></div>'
         f'<div class="stats">{stats}</div></div></header>'

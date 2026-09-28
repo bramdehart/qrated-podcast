@@ -12,6 +12,7 @@ from pathlib import Path
 from zoneinfo import ZoneInfo
 
 from . import audio
+from .cover import ensure_cover
 from .config import Config
 from .feedxml import prune_editions, write_feed
 from .openrouter import OpenRouter
@@ -62,6 +63,7 @@ def build_edition(
     work.mkdir(parents=True, exist_ok=True)
     try:
         bed = audio.generate_bed(cfg, client)
+        ensure_cover(cfg, client)
         ding = audio.to_wav(audio.ensure_ding(cfg), work / "ding.wav")
         silence = audio.make_silence(work / "silence.wav", 1.0)
 

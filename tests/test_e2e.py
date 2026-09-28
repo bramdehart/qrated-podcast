@@ -39,7 +39,7 @@ def servers(tmp_path):
         f"00:{i * 10 // 60:02d}:{i * 10 % 60:02d}.000 --> 00:{(i * 10 + 10) // 60:02d}:{(i * 10 + 10) % 60:02d}.000\nLine {i}\n\n"
         for i in range(30)
     )
-    state = {"tts_calls": 0, "chat_calls": 0, "tts_bodies": []}
+    state = {"tts_calls": 0, "chat_calls": 0, "tts_bodies": [], "image_prompts": []}
 
     class Handler(BaseHTTPRequestHandler):
         def log_message(self, *a):
@@ -85,6 +85,11 @@ def servers(tmp_path):
                     lines += "data: " + json.dumps({"choices": [{"delta": {"audio": {"data": part}}}]}) + "\n\n"
                 lines += "data: [DONE]\n\n"
                 self._send(lines.encode(), "text/event-stream")
+            elif self.path == "/api/v1/chat/completions" and "image" in body.get("modalities", []):
+                state["image_prompts"].append(body["messages"][0]["content"])
+                url = "data:image/png;base64," + base64.b64encode(cover_png).decode()
+                msg = {"role": "assistant", "content": "", "images": [{"type": "image_url", "image_url": {"url": url}}]}
+                self._send(json.dumps({"choices": [{"message": msg}]}).encode(), "application/json")
             elif self.path == "/api/v1/chat/completions":
                 state["chat_calls"] += 1
                 segs = {"segments": [
@@ -142,11 +147,23 @@ def test_full_pipeline(tmp_path, servers):
     ed = conn.execute("SELECT * FROM editions").fetchone()
     assert abs(ed["duration"] - duration) < 0.01
 
+    # cover art generated once from COVER_PROMPT, published as a square 1400 px JPEG
+    assert len(state["image_prompts"]) == 1 and '"Q-rated"' in state["image_prompts"][0]
+    cover = data / "public" / "cover.jpg"
+    assert (data / "assets" / "cover.png").exists() and cover.exists()
+    dims = subprocess.run(["ffprobe", "-v", "error", "-show_entries", "stream=width,height", "-of", "csv=p=0",
+                           str(cover)], capture_output=True, text=True).stdout.strip()
+    assert dims == "1400,1400"
+
     # work dir cleaned
     assert not any((data / "work").iterdir())
 
     # feed XML valid
     root = ET.parse(data / "public" / "feed.xml").getroot()
+    itunes = "{http://www.itunes.com/dtds/podcast-1.0.dtd}"
+    assert root.find(f"channel/{itunes}image").get("href").startswith("https://podcast.example.com/cover.jpg?v=")
+    assert root.find("channel/image/url").text.startswith("https://podcast.example.com/cover.jpg")
+    assert "Bram follows" in root.find("channel/description").text
     enclosure = root.find("channel/item/enclosure")
     assert enclosure.get("url").startswith("https://podcast.example.com/editions/qrated_")
     assert int(enclosure.get("length")) == mp3s[0].stat().st_size
@@ -163,6 +180,7 @@ def test_full_pipeline(tmp_path, servers):
     assert f'src="editions/{mp3s[0].name}"' in page
     assert f'src="covers/{covers[0].name}"' in page
     assert "Big story" in page and "Podcasts included (1)" in page
+    assert 'class="logo"><img src="cover.jpg?v=' in page and "og:image" in page
 
     # chapter offsets of the story inside the edition (after opening + ding)
     item = conn.execute("SELECT * FROM items").fetchone()
@@ -179,6 +197,7 @@ def test_full_pipeline(tmp_path, servers):
     old_ed = conn.execute("SELECT * FROM editions").fetchone()
     cmd_rebuild(cfg, conn)
     assert state["chat_calls"] == 1 and state["tts_calls"] == 6
+    assert len(state["image_prompts"]) == 1  # cover reused, not regenerated
     eds = conn.execute("SELECT * FROM editions").fetchall()
     assert len(eds) == 1 and eds[0]["id"] != old_ed["id"] and eds[0]["created_at"] == old_ed["created_at"]
     assert [p.name for p in (data / "public" / "editions").glob("*.mp3")] == [old_ed["file_name"]]

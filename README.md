@@ -71,7 +71,8 @@ Everything is set in `.env` (see [.env.example](.env.example)):
 | Music | `MUSIC_MODEL`, `MUSIC_PROMPT`, `BED_VOLUME`, `FADE_SECONDS` |
 | Texts | `LISTENER_NAME`, `INTRO_TEXT`, `ANNOUNCE_TEXT`, `OUTRO_TEXT` |
 | Schedule | `SCHEDULE_TIMES` (comma-separated `HH:MM`, local time), `TZ` |
-| Feed | `PUBLIC_BASE_URL`, `FEED_TITLE`, `KEEP_EDITIONS` |
+| Feed | `PUBLIC_BASE_URL`, `FEED_TITLE`, `FEED_DESCRIPTION`, `KEEP_EDITIONS` |
+| Cover | `COVER_MODEL`, `COVER_PROMPT` |
 
 Text placeholders: `INTRO_TEXT` supports `{name}`, `{date}`, `{items}`, `{shows}`; `ANNOUNCE_TEXT` supports
 `{lead}`, `{podcast}`, `{episode_date}`, `{intro}`, `{title}`, `{name}`; `OUTRO_TEXT` supports `{name}`.
@@ -90,6 +91,7 @@ Run inside the container (`docker compose exec app qrated <command>`):
 | `rebuild` | Rebuild the newest edition from the same stories, keeping its date (TTS cost only, no re-analysis). Use it after changing the voice, music or texts |
 | `status` | Feeds with last check/error, episode counts per status, recent editions |
 | `make-bed` | (Re)generate the music bed |
+| `make-cover` | (Re)generate the podcast cover art and refresh the feed and homepage |
 | `serve` | Container entrypoint: runs the full pipeline daily at `SCHEDULE_TIMES` |
 
 ## How new-episode tracking works
@@ -101,6 +103,15 @@ discovery are stored with status `skipped` and never analyzed. That handles both
 `feeds.yaml` later. `last_checked` and `last_error` are stored per feed, and one broken feed never stops the others.
 
 Episode statuses: `new`, `skipped`, `no_transcript`, `analyzed`, `failed`, `used`.
+
+## Cover art
+
+On the first build, if there is no cover yet, one is generated with `COVER_MODEL` from `COVER_PROMPT` (placeholders
+`{title}` and `{name}`) and saved as `data/assets/cover.png`. It is published as a 1400x1400 JPEG at
+`<PUBLIC_BASE_URL>/cover.jpg` (the size Apple Podcasts requires), used in the feed (`itunes:image`) and on the
+homepage. Run `qrated make-cover` to generate a new one after changing the prompt. If generation fails, a gradient
+placeholder is used and generation is retried on the next build. Your own `data/assets/cover.jpg` (or `.png`) always
+wins. Podcast apps cache artwork, so a new cover can take a while to show up there.
 
 ## Music bed and ding
 
@@ -116,7 +127,7 @@ Episode statuses: `new`, `skipped`, `no_transcript`, `analyzed`, `failed`, `used
 data/qrated.db, data/qrated.lock
 data/assets/bed.mp3, ding.mp3
 data/work/                      temporary, cleaned after each build
-data/public/feed.xml, index.html
+data/public/feed.xml, index.html, cover.jpg
 data/public/covers/           show cover art
 data/public/editions/qrated_YYYY-MM-DD_HHMM.mp3
 ```
@@ -126,6 +137,7 @@ data/public/editions/qrated_YYYY-MM-DD_HHMM.mp3
 - LLM analysis (Gemini Flash-Lite, $0.30/$2.50 per M tokens): tens of cents per week.
 - TTS (Flash-Lite TTS, ~$0.009 per generated minute, doubling on 1 January 2027): a few cents per week.
 - Lyria music bed: one-time ~$0.04.
+- Cover art: one-time, a few cents per generated image.
 
 ## Development
 
