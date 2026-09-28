@@ -17,11 +17,11 @@ DEFAULT_FEED_DESCRIPTION = (
     "introduced by a friendly radio host."
 )
 DEFAULT_COVER_PROMPT = (
-    "Square podcast cover art for a daily personal podcast called \"{title}\". A warm, hand-drawn "
-    "illustration of a cozy morning scene: a comfortable armchair by a sunlit window, a steaming cup of "
-    "coffee and a vintage radio on a small side table, a few plants. Soft textured gouache style, calm "
-    "and inviting, warm muted palette of terracotta, cream, mustard and sage. The title \"{title}\" in an "
-    "elegant, friendly serif typeface, clearly legible at small sizes. No other text."
+    "Square podcast cover art for a daily personal podcast called \"{title}\". A calm, atmospheric "
+    "photograph of a quiet landscape at dawn: soft morning mist over a still lake, gentle hills in the "
+    "distance, warm low sunlight. Realistic, serene and minimal, muted natural tones, lots of calm "
+    "negative space. The title \"{title}\" in a clean, elegant typeface, clearly legible at small sizes. No "
+    "other text."
 )
 DEFAULT_MUSIC_PROMPT = (
     "instrumental chill lo-fi background, soft Rhodes chords, warm and relaxed, "
