@@ -3,7 +3,9 @@
 A self-hosted, AI-curated **daily podcast**. Q-rated follows ~50 podcasts you choose, finds the most
 interesting self-contained fragments in their transcripts, and stitches them into one personal episode:
 a spoken intro over a chill music bed, a short ding and an announcement before every fragment, and a
-closing line. The result is served as a normal podcast RSS feed.
+closing line. The result is served as a normal podcast RSS feed and a homepage with a chapter-aware player.
+
+**Demo:** see and hear a live edition at [https://podcast.bramdehart.nl](https://podcast.bramdehart.nl/#ed-4).
 
 It is built for a small VPS (2 GB RAM, no GPU): there are no local ML models. All AI work (analysis,
 text-to-speech, music) goes through [OpenRouter](https://openrouter.ai) with a single API key.
