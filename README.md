@@ -1,9 +1,9 @@
 # Q-rated
 
-A self-hosted, AI-curated **daily podcast**. Q-rated follows ~50 podcasts you choose, finds the most
-interesting self-contained fragments in their transcripts, and stitches them into one personal episode:
-a spoken intro over a chill music bed, a short ding and an announcement before every fragment, and a
-closing line. The result is served as a normal podcast RSS feed and a homepage with a chapter-aware player.
+A self-hosted, AI-curated **daily podcast**. Q-rated follows the podcasts you list in `feeds.yaml` (as many as
+you like), finds the most interesting self-contained fragments in their transcripts, and stitches them into one
+personal episode: a spoken intro over a music bed (generated from your own prompt), a short ding and an
+announcement before every fragment, and a closing line. The result is served as a normal podcast RSS feed and a homepage with a chapter-aware player.
 
 **Demo:** see and hear a live edition at [https://podcast.bramdehart.nl](https://podcast.bramdehart.nl/#ed-4).
 
@@ -136,7 +136,8 @@ data/public/editions/qrated_YYYY-MM-DD_HHMM.mp3
 
 ## Costs (approximate)
 
-- LLM analysis (Gemini Flash-Lite, $0.30/$2.50 per M tokens): tens of cents per week.
+- LLM analysis (Gemini Flash-Lite, $0.30/$2.50 per M tokens): tens of cents per week when following ~50 podcasts;
+  it scales with the number of new episodes that have transcripts.
 - TTS (Flash-Lite TTS, ~$0.009 per generated minute, doubling on 1 January 2027): a few cents per week.
 - Lyria music bed: one-time ~$0.04.
 - Cover art: one-time, a few cents per generated image.
