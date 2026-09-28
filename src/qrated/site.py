@@ -18,7 +18,7 @@ CSS = """
 --soft:#25252c;--accent:#9d8cff;--accent-2:#ff7aa8;--on-accent:#121215;--shadow:0 1px 2px rgba(0,0,0,.4)}}
 *{box-sizing:border-box}html{-webkit-text-size-adjust:100%}
 body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.5 ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}
-.wrap{max-width:1080px;margin:0 auto;padding:32px 16px 72px}
+.wrap{max-width:860px;margin:0 auto;padding:32px 16px 72px}
 a{color:var(--accent)}button{font:inherit;color:inherit}
 .hero{display:flex;gap:20px;align-items:center;flex-wrap:wrap;margin-bottom:8px}
 .logo{width:88px;height:88px;border-radius:22px;flex:none;display:grid;place-items:center;color:#fff;
@@ -31,31 +31,37 @@ background:var(--card);text-decoration:none;color:var(--fg);cursor:pointer;font-
 .btn.primary{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
 .stats{color:var(--muted);font-size:.9rem;margin-top:.6rem}
 h2{font-size:.8rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:2.5rem 0 .9rem}
-.layout{display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.6fr);gap:20px;align-items:start}
-@media (max-width:760px){.layout{grid-template-columns:1fr}}
-.list{display:flex;flex-direction:column;gap:8px}
-.ep{display:block;width:100%;text-align:left;background:var(--card);border:1px solid var(--line);border-radius:14px;
-padding:12px 14px;cursor:pointer;transition:border-color .15s,transform .15s}
-.ep:hover{border-color:var(--muted)}.ep[aria-current=true]{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
-.ep b{display:block}.ep small{color:var(--muted)}
+.editions{display:flex;flex-direction:column;gap:12px}
+.edition{background:var(--card);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);overflow:clip}
+.edition[open]{border-color:color-mix(in srgb,var(--accent) 45%,var(--line))}
+.edition>summary{list-style:none;display:flex;gap:14px;align-items:center;padding:14px 16px;cursor:pointer}
+.edition>summary::-webkit-details-marker{display:none}
+.edition>summary:hover{background:var(--soft)}
+.edition>summary:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.sum-main{flex:1;min-width:0}
+.sum-main b{font-size:1.1rem}.sum-main small{display:block;color:var(--muted)}
+.pill{display:inline-block;vertical-align:2px;margin-left:8px;font-size:.7rem;font-weight:600;padding:1px 8px;border-radius:99px;
+background:var(--accent);color:var(--on-accent);text-transform:uppercase;letter-spacing:.05em}
+.chev{flex:none;width:32px;height:32px;border-radius:50%;display:grid;place-items:center;color:var(--muted);transition:transform .2s}
+.chev svg{width:20px;height:20px;fill:currentColor}.edition[open] .chev{transform:rotate(180deg)}
 .stack{display:flex;margin-top:8px;padding-left:6px}
-.stack img,.stack .ph{width:30px;height:30px;border-radius:50%;object-fit:cover;margin-left:-6px;border:2px solid var(--card)}
+.stack img,.stack .ph{width:32px;height:32px;border-radius:50%;object-fit:cover;margin-left:-6px;border:2px solid var(--card);font-size:.8rem}
+.edition-body{border-top:1px solid var(--line)}
 .ph{background:var(--soft);display:grid;place-items:center;color:var(--muted);font-weight:700}
 .ph.q{background:linear-gradient(135deg,#5a47e0,#e0477a);color:#fff}
-.detail{background:var(--card);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);overflow:clip}
-.detail-head{padding:18px 18px 0}.detail h3{margin:0;font-size:1.25rem}
 .muted{color:var(--muted)}
-.fallback-audio{width:100%;padding:12px 18px}
-.player{display:none;position:sticky;top:0;z-index:2;background:var(--card);padding:14px 18px 12px;border-bottom:1px solid var(--line)}
+.fallback-audio{width:100%;padding:12px 16px}
+.player{display:none;position:sticky;top:0;z-index:2;background:var(--card);padding:14px 16px 12px;border-bottom:1px solid var(--line)}
 .now{display:flex;gap:12px;align-items:center;min-height:60px}
 .now .art{width:60px;height:60px;border-radius:10px;object-fit:cover;flex:none}
 .now small{display:block;color:var(--accent);font-weight:600;font-size:.75rem;text-transform:uppercase;letter-spacing:.06em}
 .now b{display:block;line-height:1.25;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
 .now span{color:var(--muted);font-size:.88rem}
 .timeline{position:relative;margin:26px 0 6px;height:28px;cursor:pointer;touch-action:none;outline:none}
-.marks{position:absolute;left:0;right:0;top:-22px;height:20px;pointer-events:none}
-.marks img,.marks .ph{position:absolute;width:20px;height:20px;border-radius:50%;object-fit:cover;transform:translateX(-2px);
-border:2px solid var(--card);font-size:9px}
+.marks{position:absolute;left:0;right:0;top:-24px;height:22px}
+.marks img,.marks .ph{position:absolute;width:22px;height:22px;border-radius:50%;object-fit:cover;transform:translateX(-2px);
+border:2px solid var(--card);font-size:9px;cursor:pointer;transition:transform .12s}
+.marks img:hover,.marks .ph:hover,.marks .on{transform:translateX(-2px) scale(1.35);z-index:1;border-color:var(--accent)}
 .bar{position:absolute;left:0;right:0;top:9px;height:10px;border-radius:99px;background:var(--soft);overflow:hidden}
 .seg{position:absolute;top:0;bottom:0;border-left:2px solid var(--card);background:var(--line);transition:background .15s}
 .seg.k-item:nth-child(odd){background:color-mix(in srgb,var(--accent) 45%,var(--soft))}
@@ -79,6 +85,7 @@ color:var(--bg);box-shadow:var(--shadow);opacity:0;pointer-events:none;transform
 .ctl.play{width:46px;height:46px;background:var(--accent);color:var(--on-accent)}.ctl.play:hover{background:var(--accent);filter:brightness(1.1)}
 .ctl.play svg{width:22px;height:22px}
 .time{font-variant-numeric:tabular-nums;color:var(--muted);font-size:.85rem;margin-left:6px}
+.dl{color:var(--muted)}.dl:hover{color:var(--fg)}
 .speed{margin-left:auto;border:1px solid var(--line);background:transparent;border-radius:99px;padding:.2rem .6rem;cursor:pointer;font-size:.8rem;font-variant-numeric:tabular-nums}
 .stories{list-style:none;margin:0;padding:6px 8px 10px}
 .item{display:flex;gap:12px;padding:10px;border-radius:12px;align-items:flex-start}
@@ -94,7 +101,7 @@ color:var(--bg);box-shadow:var(--shadow);opacity:0;pointer-events:none;transform
 .badge{display:inline-block;margin-top:3px;font-size:.72rem;padding:1px 7px;border-radius:99px;background:var(--soft);color:var(--muted)}
 .empty{padding:28px;text-align:center;background:var(--card);border:1px dashed var(--line);border-radius:14px;color:var(--muted)}
 footer{margin-top:3rem;color:var(--muted);font-size:.82rem}
-.js .detail{display:none}.js .detail.on{display:block}.js .player{display:block}.js .fallback-audio{display:none}
+.js .player{display:block}.js .fallback-audio{display:none}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
 """
 
@@ -114,7 +121,7 @@ JS = r"""
     var audio=sec.querySelector('audio'),el=sec.querySelector('.player'),tl=el.querySelector('.timeline'),
       fill=el.querySelector('.fill'),head=el.querySelector('.head'),ghost=el.querySelector('.ghost'),tip=el.querySelector('.tip'),
       playBtn=el.querySelector('.play'),time=el.querySelector('.time'),speed=el.querySelector('.speed'),
-      now=el.querySelector('.now'),segs=[].slice.call(el.querySelectorAll('.seg')),
+      now=el.querySelector('.now'),segs=[].slice.call(el.querySelectorAll('.seg')),marks=[].slice.call(el.querySelectorAll('.marks [data-chapter]')),
       rows=[].slice.call(sec.querySelectorAll('.stories .item')),chapters=data.chapters,dur=data.duration||0,cur=-2,dragging=false,pending=null;
     function total(){return isFinite(audio.duration)&&audio.duration>0?audio.duration:dur;}
     function chapterAt(t){for(var i=chapters.length-1;i>=0;i--)if(t>=chapters[i].start)return i;return -1;}
@@ -122,7 +129,7 @@ JS = r"""
       now.innerHTML=artHtml(c,'art')+'<div><small>'+esc(c.kicker||'Now playing')+'</small><b>'+esc(c.title)+'</b>'+
         '<span>'+esc(c.sub||'')+'</span></div>';
       segs.forEach(function(s,j){s.classList.toggle('hot',j===i);});
-      rows.forEach(function(r){r.classList.toggle('playing',chapters[i]&&+r.dataset.chapter===i);});
+      rows.forEach(function(r){r.classList.toggle('playing',!!chapters[i]&&r.dataset.chapter!=null&&+r.dataset.chapter===i);});
       if('mediaSession' in navigator&&window.MediaMetadata){var art=c.art?[{src:new URL(c.art,location.href).href,sizes:'512x512'}]:[];
         navigator.mediaSession.metadata=new MediaMetadata({title:c.title,artist:c.sub||data.title,album:data.title,artwork:art});}}
     function render(at){var t=typeof at==='number'?at:(pending!=null?pending:audio.currentTime),T=total(),p=T?Math.min(1,t/T):0;
@@ -131,20 +138,22 @@ JS = r"""
       if(chapters.length)setNow(chapterAt(t));}
     function seek(t){t=Math.max(0,Math.min(total()-0.1,t));
       if(audio.readyState<1){pending=t;audio.preload='auto';audio.load();}else audio.currentTime=t;render(t);}
-    function play(){pauseOthers(audio);var p=audio.play();if(p&&p.catch)p.catch(function(){});}
+    function play(){pauseOthers(audio);setActive(api);var p=audio.play();if(p&&p.catch)p.catch(function(){});}
     function toggle(){audio.paused?play():audio.pause();}
     function jump(d){if(!chapters.length)return seek(audio.currentTime+d*30);var i=chapterAt(audio.currentTime);
       if(d<0&&i>=0&&audio.currentTime-chapters[i].start>3)return seek(chapters[i].start);
       var n=Math.max(0,Math.min(chapters.length-1,i+d));seek(chapters[n].start);}
     function xToTime(x){var r=tl.getBoundingClientRect();return Math.max(0,Math.min(1,(x-r.left)/r.width))*total();}
-    function showTip(x){var r=tl.getBoundingClientRect(),t=xToTime(x),i=chapterAt(t),c=chapters[i],pos=x-r.left;
+    function showTip(x,forced){var r=tl.getBoundingClientRect(),t=forced!=null?chapters[forced].start:xToTime(x),
+      i=forced!=null?forced:chapterAt(t),c=chapters[i],pos=x-r.left;
       ghost.style.left=pos+'px';tl.classList.add('hovering');
       if(c){tip.innerHTML=artHtml(c,'')+'<div><b>'+esc(c.title)+'</b><span>'+esc(c.sub||'')+'</span><small>'+fmt(t)+
         ' &middot; '+fmt(c.start)+'&ndash;'+fmt(c.end)+'</small></div>';}
       else tip.innerHTML='<div><b>'+fmt(t)+'</b></div>';
       var w=tip.offsetWidth;tip.style.left=Math.max(0,Math.min(r.width-w,pos-w/2))+'px';tip.classList.add('on');
-      segs.forEach(function(s,j){s.classList.toggle('hot',j===i);});}
-    function hideTip(){tip.classList.remove('on');tl.classList.remove('hovering');var i=cur;cur=-2;setNow(i);}
+      segs.forEach(function(s,j){s.classList.toggle('hot',j===i);});
+      marks.forEach(function(m){m.classList.toggle('on',+m.dataset.chapter===i);});}
+    function hideTip(){marks.forEach(function(m){m.classList.remove('on');});tip.classList.remove('on');tl.classList.remove('hovering');var i=cur;cur=-2;setNow(i);}
 
     playBtn.addEventListener('click',toggle);
     el.querySelector('.prev').addEventListener('click',function(){jump(-1);});
@@ -160,6 +169,11 @@ JS = r"""
     tl.addEventListener('keydown',function(e){var k=e.key;
       if(k==='ArrowRight'||k==='ArrowLeft'){e.preventDefault();e.shiftKey?jump(k==='ArrowRight'?1:-1):seek(audio.currentTime+(k==='ArrowRight'?10:-10));}
       else if(k==='Home'){e.preventDefault();seek(0);}else if(k==='End'){e.preventDefault();seek(total());}});
+    marks.forEach(function(m){var i=+m.dataset.chapter;
+      m.addEventListener('pointerenter',function(){var b=m.getBoundingClientRect();showTip(b.left+b.width/2,i);});
+      m.addEventListener('pointerleave',hideTip);
+      m.addEventListener('pointerdown',function(e){e.stopPropagation();});
+      m.addEventListener('click',function(e){e.stopPropagation();seek(chapters[i].start);play();});});
     rows.forEach(function(r){if(r.dataset.chapter==null)return;r.addEventListener('click',function(){
       seek(chapters[+r.dataset.chapter].start);play();});});
     audio.addEventListener('timeupdate',render);audio.addEventListener('loadedmetadata',function(){if(pending!=null){audio.currentTime=pending;pending=null;}render();});
@@ -167,29 +181,30 @@ JS = r"""
     audio.addEventListener('pause',function(){playBtn.innerHTML=ICON.play;playBtn.setAttribute('aria-label','Play');});
     audio.addEventListener('ended',function(){audio.pause();});
     render();if(cur===-2)setNow(-1);
-    return {audio:audio,toggle:toggle,jump:jump,seek:seek,
+    var api={audio:audio,toggle:toggle,jump:jump,seek:seek,
       activate:function(){if('mediaSession' in navigator){var ms=navigator.mediaSession;
         try{ms.setActionHandler('play',play);ms.setActionHandler('pause',function(){audio.pause();});
           ms.setActionHandler('previoustrack',function(){jump(-1);});ms.setActionHandler('nexttrack',function(){jump(1);});
           ms.setActionHandler('seekto',function(d){seek(d.seekTime);});}catch(_){}}}};
+    return api;
   }
 
   var players={},active=null;
   function pauseOthers(a){Object.keys(players).forEach(function(k){if(players[k].audio!==a)players[k].audio.pause();});}
-  var eps=[].slice.call(document.querySelectorAll('.ep')),details=[].slice.call(document.querySelectorAll('.detail'));
-  details.forEach(function(d){players[d.dataset.id]=Player(d);});
-  function show(id){details.forEach(function(d){d.classList.toggle('on',d.dataset.id===id);});
-    eps.forEach(function(e){e.setAttribute('aria-current',e.dataset.id===id?'true':'false');});
-    active=players[id];if(active)active.activate();}
-  eps.forEach(function(e){e.addEventListener('click',function(){show(e.dataset.id);history.replaceState(null,'','#'+e.dataset.id);
-    var d=document.getElementById('ed-'+e.dataset.id);if(window.innerWidth<=760&&d)d.scrollIntoView({behavior:'smooth'});});});
-  var first=location.hash.slice(1);
-  if(!eps.some(function(e){return e.dataset.id===first;}))first=eps.length?eps[0].dataset.id:'';
-  if(first)show(first);
-  window.addEventListener('hashchange',function(){var id=location.hash.slice(1);if(players[id])show(id);});
+  function setActive(p){if(p&&p!==active){active=p;p.activate();}}
+  var editions=[].slice.call(document.querySelectorAll('details.edition'));
+  editions.forEach(function(d){var p=players[d.dataset.id]=Player(d);
+    var byUser=false;d.querySelector('summary').addEventListener('click',function(){byUser=true;});
+    d.addEventListener('toggle',function(){if(d.open){setActive(p);if(byUser)history.replaceState(null,'','#'+d.id);}
+      else p.audio.pause();byUser=false;});});
+  function openFromHash(){var d=document.getElementById(location.hash.slice(1));
+    if(d&&d.matches('details.edition')){d.open=true;setActive(players[d.dataset.id]);d.scrollIntoView({block:'start'});}}
+  if(location.hash)openFromHash();
+  else{var first=editions.filter(function(d){return d.open;})[0];if(first)setActive(players[first.dataset.id]);}
+  window.addEventListener('hashchange',openFromHash);
 
   document.addEventListener('keydown',function(e){if(!active||e.metaKey||e.ctrlKey||e.altKey)return;
-    var t=e.target.tagName;if(t==='INPUT'||t==='TEXTAREA'||t==='BUTTON'||t==='A'||e.target.getAttribute('role')==='slider')return;
+    var t=e.target.tagName;if(t==='INPUT'||t==='TEXTAREA'||t==='BUTTON'||t==='A'||t==='SUMMARY'||e.target.getAttribute('role')==='slider')return;
     if(e.key===' '||e.key==='k'){e.preventDefault();active.toggle();}
     else if(e.key==='j')active.seek(active.audio.currentTime-15);else if(e.key==='l')active.seek(active.audio.currentTime+15);
     else if(e.key==='n')active.jump(1);else if(e.key==='p')active.jump(-1);});
@@ -203,6 +218,8 @@ JS = r"""
 
 ICON_PLAY = '<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>'
 ICON_PREV = '<svg viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6 8.5 6V6z"/></svg>'
+ICON_DOWNLOAD = '<svg viewBox="0 0 24 24"><path d="M11 4h2v9l3.5-3.5 1.4 1.4L12 16.8 6.1 10.9l1.4-1.4L11 13zM5 18h14v2H5z"/></svg>'
+ICON_CHEVRON = '<svg viewBox="0 0 24 24"><path d="M7.4 8.6 12 13.2l4.6-4.6L18 10l-6 6-6-6z"/></svg>'
 ICON_NEXT = '<svg viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6zm10-12h2v12h-2z"/></svg>'
 
 
@@ -212,8 +229,8 @@ def _e(text) -> str:
 
 def _cover(file: str | None, name: str = "", cls: str = "art") -> str:
     if file:
-        return f'<img class="{cls}" src="covers/{_e(file)}" alt="{_e(name)}" loading="lazy">'
-    return f'<div class="ph {cls}" aria-hidden="true">{_e((name or "?")[:1].upper())}</div>'
+        return f'<img class="{cls}" src="covers/{_e(file)}" alt="{_e(name)}" title="{_e(name)}" loading="lazy">'
+    return f'<div class="ph {cls}" title="{_e(name)}" aria-hidden="true">{_e((name or "?")[:1].upper())}</div>'
 
 
 def _json_script(data) -> str:
@@ -243,15 +260,16 @@ def _chapters(ed: sqlite3.Row, items: list[sqlite3.Row], feed_title: str) -> lis
     return chapters
 
 
-def _player(chapters: list[dict], duration: float) -> str:
+def _player(chapters: list[dict], duration: float, file_name: str) -> str:
     segs, marks = [], []
-    for c in chapters:
+    for i, c in enumerate(chapters):
         left = 100 * c["start"] / duration if duration else 0
         width = 100 * max(c["end"] - c["start"], 0) / duration if duration else 0
         segs.append(f'<div class="seg k-{c["kind"]}" style="left:{left:.3f}%;width:{width:.3f}%"></div>')
         if c["kind"] == "item":
-            art = (f'<img src="{_e(c["art"])}" alt="" style="left:{left:.3f}%">' if c["art"]
-                   else f'<div class="ph" style="left:{left:.3f}%">{_e(c["podcast"][:1].upper())}</div>')
+            pos = f'data-chapter="{i}" style="left:{left:.3f}%"'
+            art = (f'<img src="{_e(c["art"])}" alt="{_e(c["podcast"])}" {pos}>' if c["art"]
+                   else f'<div class="ph" {pos}>{_e(c["podcast"][:1].upper())}</div>')
             marks.append(art)
     return (
         '<div class="player"><div class="now"></div>'
@@ -264,6 +282,8 @@ def _player(chapters: list[dict], duration: float) -> str:
         f'<button class="ctl play" aria-label="Play">{ICON_PLAY}</button>'
         f'<button class="ctl next" aria-label="Next story">{ICON_NEXT}</button>'
         '<span class="time">0:00</span><button class="speed" aria-label="Playback speed">1×</button>'
+        f'<a class="ctl dl" href="editions/{_e(file_name)}" download aria-label="Download MP3"'
+        f' title="Download MP3">{ICON_DOWNLOAD}</a>'
         "</div></div>"
     )
 
@@ -272,8 +292,8 @@ def render_index(conn: sqlite3.Connection, cfg: Config) -> str:
     tz = ZoneInfo(cfg.tz)
     editions = conn.execute("SELECT * FROM editions ORDER BY id DESC").fetchall()
 
-    list_html, detail_html, total_stories = [], [], 0
-    for ed in editions:
+    cards, total_stories = [], 0
+    for idx, ed in enumerate(editions):
         items = conn.execute(
             "SELECT i.*, e.podcast, e.title AS episode_title, f.image_file FROM items i"
             " JOIN episodes e ON e.guid = i.episode_guid"
@@ -283,7 +303,6 @@ def render_index(conn: sqlite3.Connection, cfg: Config) -> str:
         ).fetchall()
         total_stories += len(items)
         created = datetime.fromisoformat(ed["created_at"]).astimezone(tz)
-        when = spoken_date(created)
         duration = ed["duration"] or 0
         mins = max(1, round(duration / 60))
         chapters = _chapters(ed, items, cfg.feed_title)
@@ -292,12 +311,14 @@ def render_index(conn: sqlite3.Connection, cfg: Config) -> str:
         for it in items:
             if it["podcast"] not in seen:
                 seen.add(it["podcast"])
-                if len(stack) < 8:
+                if len(stack) < 10:
                     stack.append(_cover(it["image_file"], it["podcast"], cls=""))
-        list_html.append(
-            f'<button class="ep" data-id="{ed["id"]}" aria-current="false">'
-            f'<b>{_e(when)}</b><small>{created:%H:%M} &middot; {len(items)} stories from {len(seen)} shows'
-            f' &middot; {mins} min</small><span class="stack">{"".join(stack)}</span></button>'
+        latest = '<span class="pill">Latest</span>' if idx == 0 else ""
+        summary = (
+            f'<summary><div class="sum-main"><b>{_e(spoken_date(created))}</b>{latest}'
+            f'<small>{created:%H:%M} &middot; {len(items)} stories from {len(seen)} shows &middot; {mins} min</small>'
+            f'<span class="stack">{"".join(stack)}</span></div>'
+            f'<span class="chev" aria-hidden="true">{ICON_CHEVRON}</span></summary>'
         )
 
         rows = []
@@ -313,14 +334,11 @@ def render_index(conn: sqlite3.Connection, cfg: Config) -> str:
                 f'<p>{_e(it["summary"])}</p></div>{at}</li>'
             )
         data = {"title": ed["title"], "duration": duration, "chapters": chapters}
-        detail_html.append(
-            f'<section class="detail" id="ed-{ed["id"]}" data-id="{ed["id"]}">'
-            f'<div class="detail-head"><h3>{_e(when)}</h3>'
-            f'<span class="muted">{len(items)} stories &middot; {mins} min &middot; '
-            f'<a href="editions/{_e(ed["file_name"])}" download>Download MP3</a></span></div>'
-            f'{_player(chapters, duration)}'
+        cards.append(
+            f'<details class="edition" id="ed-{ed["id"]}" data-id="{ed["id"]}"{" open" if idx == 0 else ""}>'
+            f'{summary}<div class="edition-body">{_player(chapters, duration, ed["file_name"])}'
             f'<audio class="fallback-audio" controls preload="metadata" src="editions/{_e(ed["file_name"])}"></audio>'
-            f'<ol class="stories">{"".join(rows)}</ol>{_json_script(data)}</section>'
+            f'<ol class="stories">{"".join(rows)}</ol></div>{_json_script(data)}</details>'
         )
 
     pods = conn.execute(
@@ -337,10 +355,7 @@ def render_index(conn: sqlite3.Connection, cfg: Config) -> str:
         for p in pods
     )
     if editions:
-        layout = (
-            f'<div class="layout"><div class="list">{"".join(list_html)}</div>'
-            f'<div>{"".join(detail_html)}</div></div>'
-        )
+        layout = f'<div class="editions">{"".join(cards)}</div>'
     else:
         layout = '<div class="empty">No editions yet. The first one appears after the next run.</div>'
     feed_url = f"{cfg.public_base_url}/feed.xml"

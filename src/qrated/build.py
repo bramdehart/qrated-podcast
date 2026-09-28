@@ -43,9 +43,15 @@ def _episode_date(published: str | None, tz: ZoneInfo) -> str:
     return spoken_date(datetime.fromisoformat(published).astimezone(tz), weekday=False)
 
 
-def build_edition(conn: sqlite3.Connection, client: OpenRouter, cfg: Config, now: datetime | None = None) -> int | None:
-    """Build one edition from analyzed candidates; returns edition id or None."""
-    chosen = select_items(conn, cfg)
+def build_edition(
+    conn: sqlite3.Connection, client: OpenRouter, cfg: Config, now: datetime | None = None,
+    rows: list[sqlite3.Row] | None = None,
+) -> int | None:
+    """Build one edition from analyzed candidates; returns edition id or None.
+
+    With `rows`, exactly those items are used (in that order) and other candidates are left alone.
+    """
+    chosen = select_items(conn, cfg) if rows is None else rows
     if not chosen:
         log.info("No candidates qualify; not building an edition")
         return None
@@ -143,16 +149,49 @@ def build_edition(conn: sqlite3.Connection, client: OpenRouter, cfg: Config, now
                 " WHERE id=?",
                 (edition_id, pos, c_start, c_end, row["id"]),
             )
-        conn.execute("UPDATE items SET status='rejected' WHERE status='candidate'")
+        if rows is None:
+            conn.execute("UPDATE items SET status='rejected' WHERE status='candidate'")
         conn.execute(
             "UPDATE episodes SET status='used' WHERE guid IN"
             " (SELECT DISTINCT episode_guid FROM items WHERE status='used')"
         )
         conn.commit()
-        prune_editions(conn, cfg)
+        if rows is None:  # a rebuild replaces an edition, so the count does not grow
+            prune_editions(conn, cfg)
         write_feed(conn, cfg)
         write_index(conn, cfg)
         log.info("Built edition %s (%d items, %.0fs)", file_name, len(built), duration)
         return edition_id
     finally:
         shutil.rmtree(work, ignore_errors=True)
+
+
+def rebuild_latest(conn: sqlite3.Connection, client: OpenRouter, cfg: Config) -> int | None:
+    """Rebuild the newest edition from the same stories, keeping its date (TTS cost only, no re-analysis).
+
+    Useful after changing voice, music or texts, and to add chapter data to editions built before it existed.
+    """
+    ed = conn.execute("SELECT * FROM editions ORDER BY id DESC LIMIT 1").fetchone()
+    if ed is None:
+        log.info("No edition to rebuild")
+        return None
+    rows = conn.execute(
+        "SELECT i.*, e.podcast, e.title AS episode_title, e.published, e.audio_url"
+        " FROM items i JOIN episodes e ON e.guid = i.episode_guid"
+        " WHERE i.edition_id=? ORDER BY i.position",
+        (ed["id"],),
+    ).fetchall()
+    created = datetime.fromisoformat(ed["created_at"])
+    edition_id = build_edition(conn, client, cfg, now=created, rows=rows)
+    if edition_id is None:
+        log.warning("Rebuild failed; keeping edition %s", ed["file_name"])
+        return None
+    new_file = conn.execute("SELECT file_name FROM editions WHERE id=?", (edition_id,)).fetchone()["file_name"]
+    if new_file != ed["file_name"]:
+        (cfg.editions_dir / ed["file_name"]).unlink(missing_ok=True)
+    conn.execute("DELETE FROM editions WHERE id=?", (ed["id"],))
+    conn.commit()
+    write_feed(conn, cfg)
+    write_index(conn, cfg)
+    log.info("Rebuilt edition %s as id %s", ed["file_name"], edition_id)
+    return edition_id

@@ -11,7 +11,7 @@ from zoneinfo import ZoneInfo
 
 from . import audio, db
 from .analyze import analyze_new
-from .build import build_edition
+from .build import build_edition, rebuild_latest
 from .config import Config
 from .feeds import fetch_all, load_feed_specs
 from .lock import file_lock
@@ -34,6 +34,10 @@ def cmd_analyze(cfg: Config, conn) -> None:
 def cmd_build(cfg: Config, conn) -> None:
     edition = build_edition(conn, OpenRouter(cfg), cfg)
     log.info("Build done: edition=%s", edition)
+
+
+def cmd_rebuild(cfg: Config, conn) -> None:
+    log.info("Rebuild done: edition=%s", rebuild_latest(conn, OpenRouter(cfg), cfg))
 
 
 def cmd_run(cfg: Config, conn) -> None:
@@ -99,7 +103,7 @@ def run_locked(cfg: Config, fn) -> None:
 
 COMMANDS = {
     "run": cmd_run, "fetch": cmd_fetch, "analyze": cmd_analyze, "build": cmd_build,
-    "status": cmd_status, "make-bed": cmd_make_bed,
+    "rebuild": cmd_rebuild, "status": cmd_status, "make-bed": cmd_make_bed,
 }
 
 

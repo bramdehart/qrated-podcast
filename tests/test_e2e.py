@@ -12,7 +12,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import pytest
 
 from qrated import audio, db
-from qrated.cli import cmd_run
+from qrated.cli import cmd_rebuild, cmd_run
 from qrated.config import Config
 
 
@@ -32,6 +32,9 @@ def servers(tmp_path):
          "-ac", "1", "-f", "s16le", str(tmp_path / "tts.pcm")], check=True)
     tts_audio = (tmp_path / "tts.pcm").read_bytes()
     bed_audio = _sine_mp3(tmp_path / "bed_src.mp3", 30, 200)
+    subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-f", "lavfi", "-i", "color=c=red:s=1400x1000",
+                    "-frames:v", "1", str(tmp_path / "cover.png")], check=True)
+    cover_png = (tmp_path / "cover.png").read_bytes()
     vtt = "WEBVTT\n\n" + "".join(
         f"00:{i * 10 // 60:02d}:{i * 10 % 60:02d}.000 --> 00:{(i * 10 + 10) // 60:02d}:{(i * 10 + 10) % 60:02d}.000\nLine {i}\n\n"
         for i in range(30)
@@ -62,7 +65,7 @@ def servers(tmp_path):
             elif self.path == "/ep.mp3":
                 self._send(ep_audio, "audio/mpeg")
             elif self.path == "/cover.png":
-                self._send(b"\x89PNG\r\n\x1a\nfake", "image/png")
+                self._send(cover_png, "image/png")
             elif self.path == "/t.vtt":
                 self._send(vtt.encode(), "text/vtt")
             else:
@@ -150,8 +153,12 @@ def test_full_pipeline(tmp_path, servers):
     assert "Big story" in root.find("channel/item/description").text
 
     # homepage with player, cover thumbnail and inventory
-    covers = list((data / "public" / "covers").glob("*.png"))
-    assert len(covers) == 1
+    covers = list((data / "public" / "covers").glob("*"))
+    assert len(covers) == 1 and covers[0].name.endswith("_300.jpg")  # square thumbnail, not the original
+    import subprocess as sp
+    dims = sp.run(["ffprobe", "-v", "error", "-show_entries", "stream=width,height", "-of", "csv=p=0",
+                   str(covers[0])], capture_output=True, text=True).stdout.strip()
+    assert dims == "300,300"
     page = (data / "public" / "index.html").read_text(encoding="utf-8")
     assert f'src="editions/{mp3s[0].name}"' in page
     assert f'src="covers/{covers[0].name}"' in page
@@ -167,3 +174,13 @@ def test_full_pipeline(tmp_path, servers):
     cmd_run(cfg, conn)
     assert state["chat_calls"] == 1
     assert len(list((data / "public" / "editions").glob("*.mp3"))) == 1
+
+    # rebuild: same stories and date, new audio (TTS only), still one edition, no re-analysis
+    old_ed = conn.execute("SELECT * FROM editions").fetchone()
+    cmd_rebuild(cfg, conn)
+    assert state["chat_calls"] == 1 and state["tts_calls"] == 6
+    eds = conn.execute("SELECT * FROM editions").fetchall()
+    assert len(eds) == 1 and eds[0]["id"] != old_ed["id"] and eds[0]["created_at"] == old_ed["created_at"]
+    assert [p.name for p in (data / "public" / "editions").glob("*.mp3")] == [old_ed["file_name"]]
+    item = conn.execute("SELECT * FROM items").fetchone()
+    assert item["edition_id"] == eds[0]["id"] and item["status"] == "used" and item["chapter_start"] > 0

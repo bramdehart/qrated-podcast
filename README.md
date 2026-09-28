@@ -22,12 +22,13 @@ text-to-speech, music) goes through [OpenRouter](https://openrouter.ai) with a s
 5. **Audio**: only the needed MP3s are downloaded, fragments are cut with ffmpeg, faded and loudness-normalized
    (-16 LUFS); sources and intermediates are deleted afterwards.
 6. **Announcements**: English TTS over the music bed, with ducking.
-7. **Homepage**: `index.html` at the site root shows the channel, the list of editions, thumbnails of the shows
-   featured, and an inventory of all podcasts in `feeds.yaml`. Each edition has a chapter-aware player: the timeline is
-   split into stories, hovering it previews the cover art and info of that section, and clicking a story jumps to it
-   (keys: space play/pause, j/l -/+15 s, p/n previous/next story; lock-screen controls show the current story).
-   Story offsets are recorded at build time, so editions built before this feature play without chapters. Cover art
-   is downloaded once into `public/covers/` (no hotlinking). It is regenerated after every fetch and build.
+7. **Homepage**: `index.html` at the site root shows the channel, the editions as expandable cards (newest open),
+   and an inventory of all podcasts in `feeds.yaml`. Each edition has a chapter-aware player: the timeline is split
+   into stories with show covers above it; hovering the timeline or a cover previews that story's art and info, and
+   clicking a cover or a story jumps to it (keys: space play/pause, j/l -/+15 s, p/n previous/next story; lock-screen
+   controls show the current story). Story offsets are recorded at build time; run `qrated rebuild` to add them to
+   the newest edition if it was built before this feature. Cover art
+   is downloaded once and stored as a 300 px thumbnail in `public/covers/` (no hotlinking). It is regenerated after every fetch and build.
 8. **Feed**: `feed.xml` (RSS 2.0 with iTunes tags) lists the newest `KEEP_EDITIONS` editions; older ones are deleted.
 
 ## Install
@@ -86,6 +87,7 @@ Run inside the container (`docker compose exec app qrated <command>`):
 | `fetch` | Poll feeds and index new episodes only |
 | `analyze` | Analyze new transcripts only |
 | `build` | Build an edition from what is already analyzed |
+| `rebuild` | Rebuild the newest edition from the same stories, keeping its date (TTS cost only, no re-analysis). Use it after changing the voice, music or texts |
 | `status` | Feeds with last check/error, episode counts per status, recent editions |
 | `make-bed` | (Re)generate the music bed |
 | `serve` | Container entrypoint: runs the full pipeline daily at `SCHEDULE_TIMES` |

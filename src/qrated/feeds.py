@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 import logging
 import sqlite3
+import subprocess
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
@@ -16,7 +17,8 @@ import yaml
 
 log = logging.getLogger(__name__)
 
-ITUNES_NS = "http://www.itunes.com/dtds/podcast-1.0.dtd"
+COVER_SIZE = 300
+ITUNES_NS ="http://www.itunes.com/dtds/podcast-1.0.dtd"
 PODCAST_NS = "https://podcastindex.org/namespace/1.0"
 PODCAST_NS_OLD = "https://podcastindex.org/namespace/1.0/"
 ENCLOSURE_TYPES = ("audio/",)
@@ -135,23 +137,42 @@ def parse_channel_image(xml_bytes: bytes) -> str | None:
     return url or None
 
 
+def _thumbnail(data: bytes, dest: Path) -> None:
+    """Scale and center-crop cover art to a small square JPEG (originals can be 3000 px / several MB)."""
+    src = dest.with_suffix(".src")
+    src.write_bytes(data)
+    try:
+        proc = subprocess.run(
+            ["ffmpeg", "-y", "-hide_banner", "-loglevel", "error", "-i", str(src), "-frames:v", "1",
+             "-vf", f"scale={COVER_SIZE}:{COVER_SIZE}:force_original_aspect_ratio=increase,"
+                    f"crop={COVER_SIZE}:{COVER_SIZE}",
+             "-q:v", "4", str(dest)],
+            capture_output=True, text=True,
+        )
+        if proc.returncode != 0:
+            raise RuntimeError(f"ffmpeg could not convert cover: {proc.stderr.strip()[-200:]}")
+    finally:
+        src.unlink(missing_ok=True)
+
+
 def download_cover(conn: sqlite3.Connection, feed_url: str, image_url: str | None, covers_dir: Path) -> None:
     """Store the cover locally (no hotlinking); failures are logged and ignored."""
     if not image_url:
         return
-    row = conn.execute("SELECT image_url, image_file FROM feeds WHERE url=?", (feed_url,)).fetchone()
-    if row and row["image_url"] == image_url and row["image_file"] and (covers_dir / row["image_file"]).exists():
+    name = f"{hashlib.sha1(image_url.encode()).hexdigest()[:12]}_{COVER_SIZE}.jpg"
+    row = conn.execute("SELECT image_file FROM feeds WHERE url=?", (feed_url,)).fetchone()
+    if row and row["image_file"] == name and (covers_dir / name).exists():
         return
     try:
         resp = requests.get(image_url, timeout=30, headers={"User-Agent": "qrated/0.1"})
         resp.raise_for_status()
-        if len(resp.content) > 5_000_000:
+        if len(resp.content) > 20_000_000:
             raise ValueError("cover image too large")
-        ctype = resp.headers.get("Content-Type", "").split(";")[0].strip().lower()
-        ext = {"image/png": "png", "image/webp": "webp", "image/gif": "gif"}.get(ctype, "jpg")
-        name = f"{hashlib.sha1(image_url.encode()).hexdigest()[:12]}.{ext}"
         covers_dir.mkdir(parents=True, exist_ok=True)
-        (covers_dir / name).write_bytes(resp.content)
+        _thumbnail(resp.content, covers_dir / name)
+        old = row["image_file"] if row else None
+        if old and old != name:
+            (covers_dir / old).unlink(missing_ok=True)
         conn.execute("UPDATE feeds SET image_url=?, image_file=? WHERE url=?", (image_url, name, feed_url))
     except Exception as exc:  # noqa: BLE001 - cover art is optional
         log.warning("Cover download failed for %s: %s", feed_url, exc)
