@@ -11,7 +11,9 @@ CREATE TABLE IF NOT EXISTS feeds (
     name TEXT,
     first_seen TEXT,
     last_checked TEXT,
-    last_error TEXT
+    last_error TEXT,
+    image_url TEXT,
+    image_file TEXT
 );
 CREATE TABLE IF NOT EXISTS episodes (
     guid TEXT PRIMARY KEY,
@@ -61,5 +63,9 @@ def connect(path: Path | str) -> sqlite3.Connection:
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA journal_mode=WAL")
     conn.executescript(SCHEMA)
+    cols = {r["name"] for r in conn.execute("PRAGMA table_info(feeds)")}
+    for col in ("image_url", "image_file"):  # migrate databases created before cover art
+        if col not in cols:
+            conn.execute(f"ALTER TABLE feeds ADD COLUMN {col} TEXT")
     conn.commit()
     return conn

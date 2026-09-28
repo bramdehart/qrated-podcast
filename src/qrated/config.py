@@ -75,6 +75,10 @@ class Config:
         return self.data_dir / "public"
 
     @property
+    def covers_dir(self) -> Path:
+        return self.public_dir / "covers"
+
+    @property
     def editions_dir(self) -> Path:
         return self.public_dir / "editions"
 

@@ -16,12 +16,14 @@ from .config import Config
 from .feeds import fetch_all, load_feed_specs
 from .lock import file_lock
 from .openrouter import OpenRouter
+from .site import write_index
 
 log = logging.getLogger("qrated")
 
 
 def cmd_fetch(cfg: Config, conn) -> None:
-    result = fetch_all(conn, load_feed_specs(cfg.feeds_file), cfg.first_run_lookback_days)
+    result = fetch_all(conn, load_feed_specs(cfg.feeds_file), cfg.first_run_lookback_days, cfg.covers_dir)
+    write_index(conn, cfg)
     log.info("Fetch done: %s", result)
 
 

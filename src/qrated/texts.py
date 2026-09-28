@@ -19,6 +19,11 @@ def spoken_date(d: date | datetime, weekday: bool = True) -> str:
     return f"{d:%A}, {text}" if weekday else text
 
 
+def mmss(sec: float) -> str:
+    s = int(sec)
+    return f"{s // 60}:{s % 60:02d}"
+
+
 def lead_for(index: int, total: int) -> str:
     if index == 0:
         return "First up"

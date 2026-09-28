@@ -22,7 +22,10 @@ text-to-speech, music) goes through [OpenRouter](https://openrouter.ai) with a s
 5. **Audio**: only the needed MP3s are downloaded, fragments are cut with ffmpeg, faded and loudness-normalized
    (-16 LUFS); sources and intermediates are deleted afterwards.
 6. **Announcements**: English TTS over the music bed, with ducking.
-7. **Feed**: `feed.xml` (RSS 2.0 with iTunes tags) lists the newest `KEEP_EDITIONS` editions; older ones are deleted.
+7. **Homepage**: `index.html` at the site root shows the channel, the list of editions (select one to see its
+   stories and play it), thumbnails of the shows featured, and an inventory of all podcasts in `feeds.yaml`. Cover art
+   is downloaded once into `public/covers/` (no hotlinking). It is regenerated after every fetch and build.
+8. **Feed**: `feed.xml` (RSS 2.0 with iTunes tags) lists the newest `KEEP_EDITIONS` editions; older ones are deleted.
 
 ## Install
 
@@ -108,7 +111,8 @@ Episode statuses: `new`, `skipped`, `no_transcript`, `analyzed`, `failed`, `used
 data/qrated.db, data/qrated.lock
 data/assets/bed.mp3, ding.mp3
 data/work/                      temporary, cleaned after each build
-data/public/feed.xml
+data/public/feed.xml, index.html
+data/public/covers/           show cover art
 data/public/editions/qrated_YYYY-MM-DD_HHMM.mp3
 ```
 

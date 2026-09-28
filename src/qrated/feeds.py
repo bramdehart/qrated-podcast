@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import logging
 import sqlite3
 import xml.etree.ElementTree as ET
@@ -15,6 +16,7 @@ import yaml
 
 log = logging.getLogger(__name__)
 
+ITUNES_NS = "http://www.itunes.com/dtds/podcast-1.0.dtd"
 PODCAST_NS = "https://podcastindex.org/namespace/1.0"
 PODCAST_NS_OLD = "https://podcastindex.org/namespace/1.0/"
 ENCLOSURE_TYPES = ("audio/",)
@@ -121,6 +123,40 @@ def parse_feed(xml_bytes: bytes) -> tuple[str, list[ParsedEpisode]]:
     return channel_title, episodes
 
 
+def parse_channel_image(xml_bytes: bytes) -> str | None:
+    """Cover art URL: <itunes:image href> first, then <image><url>."""
+    channel = ET.fromstring(xml_bytes).find("channel")
+    if channel is None:
+        return None
+    itunes = channel.find(f"{{{ITUNES_NS}}}image")
+    if itunes is not None and itunes.get("href"):
+        return itunes.get("href").strip()
+    url = (channel.findtext("image/url") or "").strip()
+    return url or None
+
+
+def download_cover(conn: sqlite3.Connection, feed_url: str, image_url: str | None, covers_dir: Path) -> None:
+    """Store the cover locally (no hotlinking); failures are logged and ignored."""
+    if not image_url:
+        return
+    row = conn.execute("SELECT image_url, image_file FROM feeds WHERE url=?", (feed_url,)).fetchone()
+    if row and row["image_url"] == image_url and row["image_file"] and (covers_dir / row["image_file"]).exists():
+        return
+    try:
+        resp = requests.get(image_url, timeout=30, headers={"User-Agent": "qrated/0.1"})
+        resp.raise_for_status()
+        if len(resp.content) > 5_000_000:
+            raise ValueError("cover image too large")
+        ctype = resp.headers.get("Content-Type", "").split(";")[0].strip().lower()
+        ext = {"image/png": "png", "image/webp": "webp", "image/gif": "gif"}.get(ctype, "jpg")
+        name = f"{hashlib.sha1(image_url.encode()).hexdigest()[:12]}.{ext}"
+        covers_dir.mkdir(parents=True, exist_ok=True)
+        (covers_dir / name).write_bytes(resp.content)
+        conn.execute("UPDATE feeds SET image_url=?, image_file=? WHERE url=?", (image_url, name, feed_url))
+    except Exception as exc:  # noqa: BLE001 - cover art is optional
+        log.warning("Cover download failed for %s: %s", feed_url, exc)
+
+
 def _now() -> datetime:
     return datetime.now(timezone.utc)
 
@@ -164,7 +200,9 @@ def register_episodes(
     return added
 
 
-def fetch_all(conn: sqlite3.Connection, specs: list[FeedSpec], lookback_days: int) -> dict:
+def fetch_all(
+    conn: sqlite3.Connection, specs: list[FeedSpec], lookback_days: int, covers_dir: Path | None = None
+) -> dict:
     """Poll every feed; one broken feed never stops the others."""
     summary = {"feeds": 0, "errors": 0, "new_episodes": 0}
     for spec in specs:
@@ -181,6 +219,8 @@ def fetch_all(conn: sqlite3.Connection, specs: list[FeedSpec], lookback_days: in
             name = spec.name or title or spec.url
             n = register_episodes(conn, spec.url, name, episodes, lookback_days)
             summary["new_episodes"] += n
+            if covers_dir is not None:
+                download_cover(conn, spec.url, parse_channel_image(resp.content), covers_dir)
             conn.execute(
                 "UPDATE feeds SET name=?, last_checked=?, last_error=NULL WHERE url=?",
                 (name, now, spec.url),

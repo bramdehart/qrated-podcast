@@ -53,13 +53,16 @@ def servers(tmp_path):
             base = f"http://127.0.0.1:{self.server.server_port}"
             if self.path == "/feed.xml":
                 rss = f"""<?xml version="1.0"?>
-<rss version="2.0" xmlns:podcast="https://podcastindex.org/namespace/1.0"><channel><title>Mock Show</title>
+<rss version="2.0" xmlns:podcast="https://podcastindex.org/namespace/1.0" xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd"><channel><title>Mock Show</title>
+<itunes:image href="{base}/cover.png"/>
 <item><title>Ep One</title><guid>ep-1</guid><pubDate>{format_datetime(datetime.now(timezone.utc))}</pubDate>
 <enclosure url="{base}/ep.mp3" type="audio/mpeg" length="1"/>
 <podcast:transcript url="{base}/t.vtt" type="text/vtt"/></item></channel></rss>"""
                 self._send(rss.encode(), "application/rss+xml")
             elif self.path == "/ep.mp3":
                 self._send(ep_audio, "audio/mpeg")
+            elif self.path == "/cover.png":
+                self._send(b"\x89PNG\r\n\x1a\nfake", "image/png")
             elif self.path == "/t.vtt":
                 self._send(vtt.encode(), "text/vtt")
             else:
@@ -145,6 +148,14 @@ def test_full_pipeline(tmp_path, servers):
     assert enclosure.get("url").startswith("https://podcast.example.com/editions/qrated_")
     assert int(enclosure.get("length")) == mp3s[0].stat().st_size
     assert "Big story" in root.find("channel/item/description").text
+
+    # homepage with player, cover thumbnail and inventory
+    covers = list((data / "public" / "covers").glob("*.png"))
+    assert len(covers) == 1
+    page = (data / "public" / "index.html").read_text(encoding="utf-8")
+    assert f'src="editions/{mp3s[0].name}"' in page
+    assert f'src="covers/{covers[0].name}"' in page
+    assert "Big story" in page and "Podcasts included (1)" in page
 
     # second run: nothing new -> no second edition, no more chat calls
     cmd_run(cfg, conn)

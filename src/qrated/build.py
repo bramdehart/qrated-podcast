@@ -16,14 +16,10 @@ from .config import Config
 from .feedxml import prune_editions, write_feed
 from .openrouter import OpenRouter
 from .select import select_items
-from .texts import lead_for, render, spoken_date
+from .site import write_index
+from .texts import lead_for, mmss, render, spoken_date
 
 log = logging.getLogger(__name__)
-
-
-def _mmss(sec: float) -> str:
-    s = int(sec)
-    return f"{s // 60}:{s % 60:02d}"
 
 
 def show_notes(items: list[dict]) -> str:
@@ -33,7 +29,7 @@ def show_notes(items: list[dict]) -> str:
             "<li><b>{title}</b> &mdash; {podcast}, <i>{episode}</i> ({start}&ndash;{end})<br/>{summary}</li>".format(
                 title=html.escape(it["title"]), podcast=html.escape(it["podcast"]),
                 episode=html.escape(it["episode_title"] or ""),
-                start=_mmss(it["start_sec"]), end=_mmss(it["end_sec"]),
+                start=mmss(it["start_sec"]), end=mmss(it["end_sec"]),
                 summary=html.escape(it["summary"]),
             )
         )
@@ -138,6 +134,7 @@ def build_edition(conn: sqlite3.Connection, client: OpenRouter, cfg: Config, now
         conn.commit()
         prune_editions(conn, cfg)
         write_feed(conn, cfg)
+        write_index(conn, cfg)
         log.info("Built edition %s (%d items, %.0fs)", file_name, len(built), duration)
         return edition_id
     finally:
