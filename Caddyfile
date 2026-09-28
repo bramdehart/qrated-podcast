@@ -1,0 +1,6 @@
+# PUBLIC_BASE_URL (e.g. https://podcast.example.com) comes from .env; Caddy provisions HTTPS for it.
+{$PUBLIC_BASE_URL} {
+	root * /srv
+	file_server
+	header /feed.xml Cache-Control "no-cache"
+}
