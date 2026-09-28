@@ -17,9 +17,11 @@ DEFAULT_FEED_DESCRIPTION = (
     "introduced by a friendly radio host."
 )
 DEFAULT_COVER_PROMPT = (
-    "Square podcast cover art for a daily personal podcast called \"{title}\". A bold, stylized letter Q "
-    "formed by flowing sound waves, vibrant violet-to-pink gradient background, modern minimal flat design, "
-    "high contrast, clean and legible at small sizes. The only text is the title \"{title}\"."
+    "Square podcast cover art for a daily personal podcast called \"{title}\". A warm, hand-drawn "
+    "illustration of a cozy morning scene: a comfortable armchair by a sunlit window, a steaming cup of "
+    "coffee and a vintage radio on a small side table, a few plants. Soft textured gouache style, calm "
+    "and inviting, warm muted palette of terracotta, cream, mustard and sage. The title \"{title}\" in an "
+    "elegant, friendly serif typeface, clearly legible at small sizes. No other text."
 )
 DEFAULT_MUSIC_PROMPT = (
     "instrumental chill lo-fi background, soft Rhodes chords, warm and relaxed, "

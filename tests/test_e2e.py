@@ -179,7 +179,7 @@ def test_full_pipeline(tmp_path, servers):
     page = (data / "public" / "index.html").read_text(encoding="utf-8")
     assert f'src="editions/{mp3s[0].name}"' in page
     assert f'src="covers/{covers[0].name}"' in page
-    assert "Big story" in page and "Podcasts included (1)" in page
+    assert "Big story" in page and "Shows in the mix <small>1</small>" in page
     assert 'class="logo"><img src="cover.jpg?v=' in page and "og:image" in page
 
     # chapter offsets of the story inside the edition (after opening + ding)

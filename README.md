@@ -24,8 +24,9 @@ text-to-speech, music) goes through [OpenRouter](https://openrouter.ai) with a s
 5. **Audio**: only the needed MP3s are downloaded, fragments are cut with ffmpeg, faded and loudness-normalized
    (-16 LUFS); sources and intermediates are deleted afterwards.
 6. **Announcements**: English TTS over the music bed, with ducking.
-7. **Homepage**: `index.html` at the site root shows the channel, the editions as expandable cards (newest open),
-   and an inventory of all podcasts in `feeds.yaml`. Each edition has a chapter-aware player: the timeline is split
+7. **Homepage**: `index.html` at the site root is an Apple Podcasts-style show page: the cover and description, a
+   "Latest Episode" button, the episodes as expandable rows (newest open) with a play button each, and the shows in
+   the mix (all podcasts in `feeds.yaml`). Each edition has a chapter-aware player: the timeline is split
    into stories with show covers above it; hovering the timeline or a cover previews that story's art and info, and
    clicking a cover or a story jumps to it (keys: space play/pause, j/l -/+15 s, p/n previous/next story; lock-screen
    controls show the current story). Story offsets are recorded at build time; run `qrated rebuild` to add them to

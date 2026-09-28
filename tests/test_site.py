@@ -43,8 +43,8 @@ def test_render_index(tmp_path):
     assert 'src="covers/abc.jpg"' in page  # channel thumb
     assert "Big &lt;story&gt;" in page and "Show &lt;One&gt;" in page  # escaped
     assert "1:05&ndash;3:05" in page
-    assert "Podcasts included (2)" in page and "Show Two" in page  # inventory incl. feeds w/o cover
-    assert "1 featured" in page
+    assert "Shows in the mix <small>2</small>" in page and "Show Two" in page  # inventory incl. feeds w/o cover
+    assert "1 story featured" in page
 
 
 def test_render_index_chapters(tmp_path):
