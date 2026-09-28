@@ -27,7 +27,10 @@ def _sine_mp3(path, seconds, freq=440):
 @pytest.fixture()
 def servers(tmp_path):
     ep_audio = _sine_mp3(tmp_path / "ep.mp3", 300)
-    tts_audio = _sine_mp3(tmp_path / "tts.mp3", 3, 300)
+    subprocess.run(
+        ["ffmpeg", "-y", "-loglevel", "error", "-f", "lavfi", "-i", "sine=f=300:d=3:r=24000",
+         "-ac", "1", "-f", "s16le", str(tmp_path / "tts.pcm")], check=True)
+    tts_audio = (tmp_path / "tts.pcm").read_bytes()
     bed_audio = _sine_mp3(tmp_path / "bed_src.mp3", 30, 200)
     vtt = "WEBVTT\n\n" + "".join(
         f"00:{i * 10 // 60:02d}:{i * 10 % 60:02d}.000 --> 00:{(i * 10 + 10) // 60:02d}:{(i * 10 + 10) % 60:02d}.000\nLine {i}\n\n"
@@ -67,7 +70,7 @@ def servers(tmp_path):
             if self.path == "/api/v1/audio/speech":
                 state["tts_calls"] += 1
                 state["tts_bodies"].append(body)
-                self._send(tts_audio, "audio/mpeg")
+                self._send(tts_audio, "application/octet-stream")
             elif self.path == "/api/v1/chat/completions" and body.get("stream"):
                 b64 = base64.b64encode(bed_audio).decode()
                 half = len(b64) // 2
@@ -117,6 +120,7 @@ def test_full_pipeline(tmp_path, servers):
     # TTS: opening + announcement + closing, style passed as provider option, text verbatim
     assert state["tts_calls"] == 3
     body = state["tts_bodies"][0]
+    assert body["response_format"] == "pcm"
     assert body["provider"]["options"]["google-ai-studio"]["speech_metadata"]["style"]
     assert body["input"].startswith("Hi Bram, this is your Q-rated selection")
     assert "First up, from Mock Show" in state["tts_bodies"][1]["input"]

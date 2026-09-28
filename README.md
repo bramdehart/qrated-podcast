@@ -60,7 +60,7 @@ Everything is set in `.env` (see [.env.example](.env.example)):
 | --- | --- |
 | API | `OPENROUTER_API_KEY` |
 | Analysis | `LLM_MODEL`, `MAX_ITEMS`, `MAX_ITEMS_PER_PODCAST`, `MIN_SCORE`, `MIN_ITEM_SECONDS`, `MAX_ITEM_SECONDS`, `FIRST_RUN_LOOKBACK_DAYS` |
-| Voice | `TTS_MODEL`, `TTS_VOICE`, `TTS_STYLE` |
+| Voice | `TTS_MODEL`, `TTS_VOICE`, `TTS_STYLE`, `TTS_SAMPLE_RATE` |
 | Music | `MUSIC_MODEL`, `MUSIC_PROMPT`, `BED_VOLUME`, `FADE_SECONDS` |
 | Texts | `LISTENER_NAME`, `INTRO_TEXT`, `ANNOUNCE_TEXT`, `OUTRO_TEXT` |
 | Schedule | `SCHEDULE_TIMES` (comma-separated `HH:MM`, local time), `TZ` |

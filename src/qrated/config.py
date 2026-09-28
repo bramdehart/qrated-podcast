@@ -37,6 +37,7 @@ class Config:
     tts_model: str = "google/gemini-3.8-flash-lite-tts"
     tts_voice: str = "Kore"
     tts_style: str = "warm, relaxed radio host"
+    tts_sample_rate: int = 24000
     music_model: str = "google/lyria-3-clip-preview"
     music_prompt: str = DEFAULT_MUSIC_PROMPT
     bed_volume: float = 0.15
@@ -95,6 +96,7 @@ class Config:
             tts_model=_env(e, "TTS_MODEL", d.tts_model),
             tts_voice=_env(e, "TTS_VOICE", d.tts_voice),
             tts_style=_env(e, "TTS_STYLE", d.tts_style),
+            tts_sample_rate=int(_env(e, "TTS_SAMPLE_RATE", str(d.tts_sample_rate))),
             music_model=_env(e, "MUSIC_MODEL", d.music_model),
             music_prompt=_env(e, "MUSIC_PROMPT", d.music_prompt),
             bed_volume=float(_env(e, "BED_VOLUME", str(d.bed_volume))),

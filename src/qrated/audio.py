@@ -152,6 +152,17 @@ def speech_over_bed(voice_mp3: Path, bed: Path, dest: Path, cfg: Config, rng: ra
     return dest
 
 
+def pcm_to_wav(pcm: bytes, dest: Path, sample_rate: int) -> Path:
+    """Convert raw PCM (s16le, mono) as returned by the TTS endpoint into a WAV file."""
+    raw = dest.with_suffix(".pcm")
+    raw.write_bytes(pcm)
+    try:
+        run_ffmpeg("-f", "s16le", "-ar", str(sample_rate), "-ac", "1", "-i", str(raw), str(dest))
+    finally:
+        raw.unlink(missing_ok=True)
+    return dest
+
+
 def to_wav(src: Path, dest: Path) -> Path:
     run_ffmpeg("-i", str(src), "-af", FORMAT, str(dest))
     return dest

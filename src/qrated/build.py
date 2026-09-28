@@ -83,8 +83,7 @@ def build_edition(conn: sqlite3.Connection, client: OpenRouter, cfg: Config, now
         parts: list[Path] = []
 
         def announce(text: str, name: str) -> Path:
-            voice = work / f"{name}.mp3"
-            voice.write_bytes(client.tts(text))
+            voice = audio.pcm_to_wav(client.tts(text), work / f"{name}_voice.wav", cfg.tts_sample_rate)
             return audio.speech_over_bed(voice, bed, work / f"{name}.wav", cfg, rng)
 
         parts.append(announce(

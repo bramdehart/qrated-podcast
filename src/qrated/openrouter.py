@@ -88,11 +88,12 @@ class OpenRouter:
         return parse_json_lenient(content)
 
     def tts(self, text: str) -> bytes:
+        """Return raw PCM (16-bit signed LE, mono): Gemini TTS supports only response_format=pcm."""
         body = {
             "model": self.cfg.tts_model,
             "input": text,
             "voice": self.cfg.tts_voice,
-            "response_format": "mp3",
+            "response_format": "pcm",
             "provider": {
                 "options": {"google-ai-studio": {"speech_metadata": {"style": self.cfg.tts_style}}}
             },
