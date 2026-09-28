@@ -1,0 +1,8 @@
+# Site block for your existing Caddy. Replace the domain and the path, then either paste it
+# into your main Caddyfile or add: import /path/to/qrated-podcast/Caddyfile.example
+# The feed is public: no authentication.
+podcast.example.com {
+	root * /path/to/qrated-podcast/data/public
+	file_server
+	header /feed.xml Cache-Control "no-cache"
+}

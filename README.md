@@ -32,8 +32,10 @@ $EDITOR feeds.yaml          # list your podcasts
 docker compose up -d
 ```
 
-Then add `<PUBLIC_BASE_URL>/feed.xml` to your podcast app. Point the DNS of the domain in `PUBLIC_BASE_URL` to
-your server; Caddy obtains an HTTPS certificate automatically. **The feed is public and has no authentication.**
+The compose file only runs the `app` container, which listens on no port. Serve `./data/public` with your own web
+server: for an existing Caddy, add the site block from [Caddyfile.example](Caddyfile.example) to your main Caddyfile
+(with your domain and the absolute path to `data/public`) and reload Caddy. Then add `<PUBLIC_BASE_URL>/feed.xml`
+to your podcast app. **The feed is public and has no authentication.**
 
 Run manually at any time (a file lock prevents overlap with the scheduled run):
 
