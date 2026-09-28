@@ -65,6 +65,24 @@ def test_render_index_chapters(tmp_path):
     assert 'class="seg k-item"' in page
 
 
+def test_reels_only_with_chapters(tmp_path):
+    import json
+    import re
+
+    conn = _seed(tmp_path)
+    page = render_index(conn, Config(data_dir=tmp_path))
+    assert 'data-reels="1"' not in page  # no chapter data -> no reels entry points
+    assert 'class="reels"' in page  # overlay markup is always present (hidden)
+
+    conn.execute("UPDATE items SET chapter_start=12.5, chapter_end=150")
+    conn.commit()
+    page = render_index(conn, Config(data_dir=tmp_path))
+    assert page.count('data-reels="1"') == 2  # hero button and episode row button
+    data = json.loads(re.search(r'<script type="application/json">(.*?)</script>', page).group(1))
+    story = data["chapters"][1]
+    assert story["summary"] == "A summary." and story["episode"] == "Ep A" and data["date"]
+
+
 def test_json_script_cannot_break_out(tmp_path):
     conn = _seed(tmp_path)
     conn.execute("UPDATE items SET title='</script><b>x', chapter_start=1, chapter_end=2")

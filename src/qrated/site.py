@@ -127,6 +127,54 @@ font-size:.75rem;font-weight:600;font-variant-numeric:tabular-nums}
 @media (max-width:520px){.grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:16px 12px}.pod{font-size:.78rem}}
 .empty{padding:28px;text-align:center;border-radius:14px;background:var(--fill);color:var(--muted);margin-top:14px}
 footer{margin-top:3.5rem;padding-top:16px;border-top:1px solid var(--line);color:var(--muted);font-size:.78rem}
+.row-reels{display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 12px 0 9px;border-radius:999px;border:0;
+cursor:pointer;background:var(--fill);color:var(--fg);font-size:.82rem;font-weight:600}
+.row-reels:hover{background:var(--fill-2)}.row-reels i{display:grid}.row-reels svg{width:16px;height:16px;fill:currentColor}
+.reels-open,.reels-open body{overflow:hidden}
+.reels{position:fixed;inset:0;z-index:50;background:#000;color:#fff}
+.reels[hidden]{display:none}
+.reels-frame{position:relative;max-width:480px;height:100vh;height:100dvh;margin:0 auto;overflow:hidden}
+.reels-scroll{height:100%;overflow-y:scroll;scroll-snap-type:y mandatory;overscroll-behavior:contain;scrollbar-width:none}
+.reels-scroll::-webkit-scrollbar{display:none}
+.reel{position:relative;height:100%;scroll-snap-align:start;scroll-snap-stop:always;overflow:hidden;cursor:pointer;
+display:flex;flex-direction:column;padding:72px 22px 28px}
+.reel-bg{position:absolute;inset:-60px;background:#2c2c2e center/cover;filter:blur(40px) saturate(1.3);transform:scale(1.15)}
+.reel-shade{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.35) 0%,rgba(0,0,0,.15) 35%,rgba(0,0,0,.8) 100%)}
+.reel-center{position:relative;flex:1;display:grid;place-items:center;min-height:0}
+.reel-art{width:min(68vw,290px);max-height:100%;aspect-ratio:1;border-radius:16px;object-fit:cover;
+box-shadow:0 20px 50px rgba(0,0,0,.5);background:linear-gradient(135deg,#8a2ecb,#e0477a);font-size:5rem;color:#fff}
+.reel-art.ph{display:grid;place-items:center;font-weight:700}
+.reel.on .reel-art{animation:reel-in .45s ease-out}
+@keyframes reel-in{from{transform:scale(.94);opacity:.6}to{transform:none;opacity:1}}
+.reel-info{position:relative;padding-right:56px}
+.reel-show{display:flex;align-items:center;gap:8px;font-weight:600;font-size:.9rem}
+.reel-show img{width:26px;height:26px;border-radius:6px;object-fit:cover;border:1px solid rgba(255,255,255,.3)}
+.reel h3{margin:.55rem 0 .35rem;font:700 1.45rem/1.2 var(--font-display);letter-spacing:-.015em}
+.reel p{margin:0;font-size:.95rem;line-height:1.4;color:rgba(255,255,255,.85);display:-webkit-box;-webkit-line-clamp:3;
+-webkit-box-orient:vertical;overflow:hidden}
+.reel small{display:block;margin-top:.45rem;color:rgba(255,255,255,.6);font-size:.8rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.reel-progress{display:flex;align-items:center;gap:10px;margin-top:16px}
+.reel-bar{flex:1;height:3px;border-radius:2px;background:rgba(255,255,255,.28);overflow:hidden}
+.reel-bar i{display:block;height:100%;width:0;background:#fff}
+.reel-time{font-size:.75rem;font-variant-numeric:tabular-nums;color:rgba(255,255,255,.75);min-width:42px;text-align:right}
+.reel-paused{position:absolute;left:50%;top:45%;width:84px;height:84px;margin:-42px 0 0 -42px;border-radius:50%;
+background:rgba(0,0,0,.45);display:grid;place-items:center;opacity:0;transition:opacity .15s;pointer-events:none}
+.reel-paused svg{width:44px;height:44px;fill:#fff}
+.reels.paused .reel.on .reel-paused{opacity:1}
+.reels-top{position:absolute;top:0;left:0;right:0;z-index:2;display:flex;align-items:center;gap:10px;padding:14px 14px 0}
+.reels-meta{display:flex;flex-direction:column;line-height:1.2;text-shadow:0 1px 3px rgba(0,0,0,.5)}
+.reels-meta b{font-size:.95rem}.reels-meta span{font-size:.78rem;opacity:.75}
+.reels-btn{width:42px;height:42px;border-radius:50%;border:0;display:grid;place-items:center;cursor:pointer;
+background:rgba(255,255,255,.16);color:#fff;-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}
+.reels-btn:hover{background:rgba(255,255,255,.28)}.reels-btn svg{width:22px;height:22px;fill:currentColor}
+.reels-btn:focus-visible{outline:2px solid #fff;outline-offset:2px}
+.reels-rail{position:absolute;right:14px;bottom:96px;z-index:2;display:flex;flex-direction:column;gap:12px}
+.reels .i-play,.reels.paused .i-pause{display:none}.reels.paused .i-play{display:grid}.reels .i-pause{display:grid}
+.reels-nav{display:none}
+@media (min-width:700px){.reels-frame{overflow:visible}.reels-nav{position:absolute;left:calc(100% + 20px);top:50%;
+transform:translateY(-50%);display:flex;flex-direction:column;gap:12px}.reels-prev svg{transform:none}
+.reels-next svg{transform:rotate(180deg)}}
+@media (min-width:700px){.reels-scroll{border-radius:0}}
 .js .player{display:block}.js .fallback-audio{display:none}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
 """
@@ -213,7 +261,7 @@ JS = r"""
       if(!sec.open)sec.open=true;toggle();});
     audio.addEventListener('ended',function(){audio.pause();});
     render();if(cur===-2)setNow(-1);
-    var api={audio:audio,toggle:toggle,jump:jump,seek:seek,
+    var api={audio:audio,data:data,play:play,toggle:toggle,jump:jump,seek:seek,
       activate:function(){if('mediaSession' in navigator){var ms=navigator.mediaSession;
         try{ms.setActionHandler('play',play);ms.setActionHandler('pause',function(){audio.pause();});
           ms.setActionHandler('previoustrack',function(){jump(-1);});ms.setActionHandler('nexttrack',function(){jump(1);});
@@ -241,11 +289,78 @@ JS = r"""
     lp.audio.addEventListener('play',function(){li.innerHTML=ICON.pause;ll.textContent='Pause';});
     lp.audio.addEventListener('pause',function(){li.innerHTML=ICON.play;ll.textContent='Resume';});}
 
-  document.addEventListener('keydown',function(e){if(!active||e.metaKey||e.ctrlKey||e.altKey)return;
+  document.addEventListener('keydown',function(e){if(e.metaKey||e.ctrlKey||e.altKey)return;
+    if(reel){var k=e.key;
+      if(k==='ArrowDown'||k==='j'||k==='PageDown'){e.preventDefault();goTo(reel.cur+1);}
+      else if(k==='ArrowUp'||k==='k'||k==='PageUp'){e.preventDefault();goTo(reel.cur-1);}
+      else if(k===' '){e.preventDefault();reel.p.toggle();}
+      else if(k==='Escape'){e.preventDefault();closeReels();}
+      return;}
+    if(!active)return;
     var t=e.target.tagName;if(t==='INPUT'||t==='TEXTAREA'||t==='BUTTON'||t==='A'||t==='SUMMARY'||e.target.getAttribute('role')==='slider')return;
     if(e.key===' '||e.key==='k'){e.preventDefault();active.toggle();}
     else if(e.key==='j')active.seek(active.audio.currentTime-15);else if(e.key==='l')active.seek(active.audio.currentTime+15);
     else if(e.key==='n')active.jump(1);else if(e.key==='p')active.jump(-1);});
+
+  // Reels: full-screen vertical feed, one story per slide, autoplay from the story's announcement.
+  var R=document.querySelector('.reels'),RS=R&&R.querySelector('.reels-scroll'),reel=null;
+  function slideHtml(c,n,total){
+    var art=c.art?'<img class="reel-art" src="'+c.art+'" alt="">':
+      '<div class="reel-art ph">'+esc((c.podcast||'?').charAt(0))+'</div>';
+    var avatar=c.art?'<img src="'+c.art+'" alt="">':'';
+    return '<section class="reel" data-n="'+n+'" aria-label="Story '+(n+1)+' of '+total+'">'+
+      (c.art?'<div class="reel-bg" style="background-image:url(\''+c.art+'\')"></div>':'<div class="reel-bg"></div>')+
+      '<div class="reel-shade"></div><div class="reel-center">'+art+'</div>'+
+      '<div class="reel-info"><div class="reel-show">'+avatar+'<span>'+esc(c.podcast)+'</span></div>'+
+      '<h3>'+esc(c.title)+'</h3><p>'+esc(c.summary||'')+'</p><small>'+esc(c.episode||'')+'</small>'+
+      '<div class="reel-progress"><div class="reel-bar"><i></i></div><span class="reel-time"></span></div></div>'+
+      '<div class="reel-paused" aria-hidden="true">'+ICON.play+'</div></section>';}
+  function storyAt(t){if(!reel)return 0;for(var i=reel.stories.length-1;i>=0;i--)if(t>=reel.stories[i].start)return i;return 0;}
+  function goTo(n){if(!reel||n<0||n>=reel.stories.length||reel.advancing===n)return;reel.advancing=n;
+    reel.slides[n].scrollIntoView({behavior:'smooth',block:'start'});}
+  function activate(n){if(!reel||reel.cur===n)return;reel.cur=n;reel.advancing=null;var c=reel.stories[n];
+    reel.slides.forEach(function(s,j){s.classList.toggle('on',j===n);});
+    R.querySelector('.reels-count').textContent=(n+1)+' / '+reel.stories.length;
+    reel.p.seek(c.start);reel.p.play();}
+  function tick(){if(!reel||reel.cur<0)return;var a=reel.p.audio,t=a.currentTime,c=reel.stories[reel.cur],
+      len=Math.max(1,c.end-c.start),f=Math.max(0,Math.min(1,(t-c.start)/len)),s=reel.slides[reel.cur];
+    s.querySelector('.reel-bar i').style.width=(f*100)+'%';
+    s.querySelector('.reel-time').textContent='-'+fmt(Math.max(0,c.end-t));
+    if(!a.paused&&t>=c.end-0.3&&reel.cur<reel.stories.length-1)goTo(reel.cur+1);}
+  function syncPaused(){if(reel)R.classList.toggle('paused',reel.p.audio.paused);}
+  function openReels(id){var p=players[id];if(!R||!p)return;
+    var stories=p.data.chapters.filter(function(c){return c.kind==='item';});if(!stories.length)return;
+    if(reel)closeReels(true);
+    RS.innerHTML=stories.map(function(c,n){return slideHtml(c,n,stories.length);}).join('');
+    var slides=[].slice.call(RS.querySelectorAll('.reel'));
+    reel={p:p,id:id,stories:stories,slides:slides,cur:-1,advancing:null};
+    R.querySelector('.reels-date').textContent=p.data.date||'';
+    R.hidden=false;root.classList.add('reels-open');
+    history.pushState({reels:true},'');
+    var start=p.audio.currentTime>0?storyAt(p.audio.currentTime):0;
+    RS.scrollTop=slides[start].offsetTop;
+    reel.obs=new IntersectionObserver(function(es){es.forEach(function(e){
+      if(e.isIntersecting&&e.intersectionRatio>=0.6)activate(+e.target.dataset.n);});},{root:RS,threshold:[0.6]});
+    slides.forEach(function(s){reel.obs.observe(s);
+      s.addEventListener('click',function(){reel.p.toggle();});});
+    p.audio.addEventListener('timeupdate',tick);p.audio.addEventListener('play',syncPaused);p.audio.addEventListener('pause',syncPaused);
+    activate(start);syncPaused();R.querySelector('.reels-close').focus();}
+  function closeReels(fromHistory){if(!reel)return;var p=reel.p,id=reel.id;
+    reel.obs.disconnect();p.audio.removeEventListener('timeupdate',tick);
+    p.audio.removeEventListener('play',syncPaused);p.audio.removeEventListener('pause',syncPaused);
+    reel=null;R.hidden=true;root.classList.remove('reels-open');RS.innerHTML='';
+    if(!fromHistory&&history.state&&history.state.reels)history.back();
+    return id;}
+  if(R){
+    [].slice.call(document.querySelectorAll('[data-reels]')).forEach(function(b){b.addEventListener('click',function(e){
+      e.preventDefault();e.stopPropagation();openReels(b.dataset.reels);});});
+    R.querySelector('.reels-close').addEventListener('click',function(){closeReels();});
+    R.querySelector('.reels-toggle').addEventListener('click',function(){if(reel)reel.p.toggle();});
+    R.querySelector('.reels-prev').addEventListener('click',function(){if(reel)goTo(reel.cur-1);});
+    R.querySelector('.reels-next').addEventListener('click',function(){if(reel)goTo(reel.cur+1);});
+    R.querySelector('.reels-episode').addEventListener('click',function(){var id=closeReels();
+      var d=document.getElementById('ed-'+id);if(d){d.open=true;d.scrollIntoView({block:'start'});}});
+    window.addEventListener('popstate',function(){if(reel)closeReels(true);});}
 
   var copy=document.querySelector('.copy');
   if(copy&&navigator.clipboard)copy.addEventListener('click',function(){navigator.clipboard.writeText(copy.dataset.url).then(function(){
@@ -258,6 +373,13 @@ JS = r"""
 ICON_PLAY = '<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>'
 ICON_PREV = '<svg viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6 8.5 6V6z"/></svg>'
 ICON_DOWNLOAD = '<svg viewBox="0 0 24 24"><path d="M11 4h2v9l3.5-3.5 1.4 1.4L12 16.8 6.1 10.9l1.4-1.4L11 13zM5 18h14v2H5z"/></svg>'
+ICON_REELS = ('<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 2h10a3 3 0 0 1 3 3v14a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3V5'
+              'a3 3 0 0 1 3-3zm0 2a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V5a1 1 0 0 0-1-1zm3 4.5 5 3.5-5 3.5z"/></svg>')
+ICON_CLOSE = ('<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 6.4 17.6 5 12 10.6 6.4 5 5 6.4 10.6 12 5 17.6 '
+              '6.4 19 12 13.4 17.6 19 19 17.6 13.4 12z"/></svg>')
+ICON_LIST = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5h2v2H3zm4 0h14v2H7zm-4 6h2v2H3zm4 0h14v2H7zm-4 6h2v2H3zm4 0h14v2H7z"/></svg>'
+ICON_UP = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7.4 15.4 12 10.8l4.6 4.6L18 14l-6-6-6 6z"/></svg>'
+ICON_PAUSE = '<svg viewBox="0 0 24 24"><path d="M6 5h4v14H6zm8 0h4v14h-4z"/></svg>'
 ICON_CHEVRON = '<svg viewBox="0 0 24 24"><path d="M7.4 8.6 12 13.2l4.6-4.6L18 10l-6 6-6-6z"/></svg>'
 ICON_RSS = ('<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="18" r="2.2"/>'
             '<path d="M4 10.5v2.7a6.8 6.8 0 0 1 6.8 6.8h2.7A9.5 9.5 0 0 0 4 10.5zm0-5.3v2.7A12.1 12.1 0 0 1 16.1 20h2.7'
@@ -266,6 +388,20 @@ ICON_COPY = ('<svg class="cp" viewBox="0 0 24 24" aria-hidden="true"><path d="M1
              'a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2zm0 16H8V7h11z"/></svg>'
              '<svg class="ok" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4z"/></svg>')
 ICON_NEXT = '<svg viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6zm10-12h2v12h-2z"/></svg>'
+
+
+REELS_MARKUP = (
+    '<div class="reels" role="dialog" aria-modal="true" aria-label="Story reels" hidden><div class="reels-frame">'
+    '<div class="reels-top"><button class="reels-btn reels-close" type="button" aria-label="Close reels">'
+    + ICON_CLOSE + '</button><div class="reels-meta"><b class="reels-count"></b><span class="reels-date"></span></div></div>'
+    '<div class="reels-scroll"></div>'
+    '<div class="reels-rail"><button class="reels-btn reels-toggle" type="button" aria-label="Play or pause">'
+    '<span class="i-pause">' + ICON_PAUSE + '</span><span class="i-play">' + ICON_PLAY + '</span></button>'
+    '<button class="reels-btn reels-episode" type="button" aria-label="Show episode">' + ICON_LIST + '</button></div>'
+    '<div class="reels-nav"><button class="reels-btn reels-prev" type="button" aria-label="Previous story">' + ICON_UP
+    + '</button><button class="reels-btn reels-next" type="button" aria-label="Next story">' + ICON_UP + '</button></div>'
+    "</div></div>"
+)
 
 
 def _e(text) -> str:
@@ -297,7 +433,7 @@ def _chapters(ed: sqlite3.Row, items: list[sqlite3.Row], feed_title: str, art: s
             "start": it["chapter_start"], "end": it["chapter_end"], "kind": "item",
             "kicker": f"Story {n} of {len(timed)}", "title": it["title"],
             "sub": f"{it['podcast']} · {it['episode_title'] or ''}".rstrip(" ·"),
-            "podcast": it["podcast"],
+            "podcast": it["podcast"], "summary": it["summary"], "episode": it["episode_title"],
             "art": f"covers/{it['image_file']}" if it["image_file"] else None,
         })
     chapters.append({"start": timed[-1]["chapter_end"], "end": duration, "kind": "outro", "kicker": "Closing",
@@ -368,7 +504,9 @@ def render_index(conn: sqlite3.Connection, cfg: Config) -> str:
             f'<p class="ep-desc">{len(items)} stories from {len(seen)} shows: {titles}</p>'
             f'<div class="ep-foot"><button class="row-play" type="button" aria-label="Play episode">'
             f'<i>{ICON_PLAY}</i><span>{mins} min</span></button>'
-            f'<span class="stack">{"".join(stack)}</span></div></div>'
+            + (f'<button class="row-reels" type="button" data-reels="{ed["id"]}" aria-label="Watch as reels">'
+               f'<i>{ICON_REELS}</i><span>Reels</span></button>' if chapters else "")
+            + f'<span class="stack">{"".join(stack)}</span></div></div>'
             f'<span class="chev" aria-hidden="true">{ICON_CHEVRON}</span></summary>'
         )
 
@@ -384,7 +522,7 @@ def render_index(conn: sqlite3.Connection, cfg: Config) -> str:
                 f' ({mmss(it["start_sec"])}&ndash;{mmss(it["end_sec"])})</div>'
                 f'<p>{_e(it["summary"])}</p></div>{at}</li>'
             )
-        data = {"title": ed["title"], "duration": duration, "chapters": chapters}
+        data = {"title": ed["title"], "date": spoken_date(created), "duration": duration, "chapters": chapters}
         cards.append(
             f'<details class="edition" id="ed-{ed["id"]}" data-id="{ed["id"]}"{" open" if idx == 0 else ""}>'
             f'{summary}<div class="edition-body">{_player(chapters, duration, ed["file_name"])}'
@@ -416,6 +554,12 @@ def render_index(conn: sqlite3.Connection, cfg: Config) -> str:
         ["Daily", f'{len(editions)} episode{"" if len(editions) == 1 else "s"}', f"{total_stories} stories",
          f"{len(pods)} shows"] + ([f"Updated {updated:%b} {updated.day}"] if updated else [])
     )
+    latest_has_chapters = bool(editions) and conn.execute(
+        "SELECT COUNT(*) FROM items WHERE edition_id=? AND chapter_start IS NULL", (editions[0]["id"],)
+    ).fetchone()[0] == 0 and conn.execute(
+        "SELECT COUNT(*) FROM items WHERE edition_id=?", (editions[0]["id"],)).fetchone()[0] > 0
+    reels_btn = (f'<button class="btn open-reels" type="button" data-reels="{editions[0]["id"]}">'
+                 f'<i>{ICON_REELS}</i><span>Reels</span></button>' if latest_has_chapters else "")
     latest_btn = (f'<button class="btn primary play-latest" type="button"><i>{ICON_PLAY}</i>'
                   "<span>Latest Episode</span></button>" if editions else "")
     return (
@@ -437,7 +581,7 @@ def render_index(conn: sqlite3.Connection, cfg: Config) -> str:
         f"<h1>{_e(cfg.feed_title)}</h1>"
         f'<div class="author">Curated for {_e(cfg.listener_name)}</div>'
         f"<p>{_e(description)}</p>"
-        f'<div class="actions">{latest_btn}'
+        f'<div class="actions">{latest_btn}{reels_btn}'
         f'<a class="btn" href="feed.xml">{ICON_RSS}<span>Subscribe</span></a>'
         f'<button class="btn copy" type="button" data-url="{_e(feed_url)}">{ICON_COPY}<span>Copy feed URL</span></button></div>'
         f'<div class="kicker stats">{stats}</div></div></header>'
@@ -445,7 +589,7 @@ def render_index(conn: sqlite3.Connection, cfg: Config) -> str:
         f'<h2>Shows in the mix <small>{len(pods)}</small></h2><div class="grid">{inventory}</div>'
         f"<footer>Updated {datetime.now(tz):%Y-%m-%d %H:%M} &middot; "
         "Keys: space play/pause, j/l &minus;/+15s, p/n previous/next story</footer>"
-        f"</div><script>{JS}</script></body></html>"
+        f"</div>{REELS_MARKUP}<script>{JS}</script></body></html>"
     )
 
 

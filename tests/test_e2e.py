@@ -171,11 +171,11 @@ def test_full_pipeline(tmp_path, servers):
 
     # homepage with player, cover thumbnail and inventory
     covers = list((data / "public" / "covers").glob("*"))
-    assert len(covers) == 1 and covers[0].name.endswith("_300.jpg")  # square thumbnail, not the original
+    assert len(covers) == 1 and covers[0].name.endswith("_600.jpg")  # square thumbnail, not the original
     import subprocess as sp
     dims = sp.run(["ffprobe", "-v", "error", "-show_entries", "stream=width,height", "-of", "csv=p=0",
                    str(covers[0])], capture_output=True, text=True).stdout.strip()
-    assert dims == "300,300"
+    assert dims == "600,600"
     page = (data / "public" / "index.html").read_text(encoding="utf-8")
     assert f'src="editions/{mp3s[0].name}"' in page
     assert f'src="covers/{covers[0].name}"' in page

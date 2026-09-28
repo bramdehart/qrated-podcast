@@ -29,9 +29,11 @@ text-to-speech, music) goes through [OpenRouter](https://openrouter.ai) with a s
    the mix (all podcasts in `feeds.yaml`). Each edition has a chapter-aware player: the timeline is split
    into stories with show covers above it; hovering the timeline or a cover previews that story's art and info, and
    clicking a cover or a story jumps to it (keys: space play/pause, j/l -/+15 s, p/n previous/next story; lock-screen
-   controls show the current story). Story offsets are recorded at build time; run `qrated rebuild` to add them to
+   controls show the current story). **Reels** opens a full-screen vertical feed: swipe up through the stories
+   of an episode like Instagram Reels; each one autoplays from its announcement and the next starts when it ends
+   (tap to pause, arrow keys on desktop). Story offsets are recorded at build time; run `qrated rebuild` to add them to
    the newest edition if it was built before this feature. Cover art
-   is downloaded once and stored as a 300 px thumbnail in `public/covers/` (no hotlinking). It is regenerated after every fetch and build.
+   is downloaded once and stored as a 600 px thumbnail in `public/covers/` (no hotlinking). It is regenerated after every fetch and build.
 8. **Feed**: `feed.xml` (RSS 2.0 with iTunes tags) lists the newest `KEEP_EDITIONS` editions; older ones are deleted.
 
 ## Install

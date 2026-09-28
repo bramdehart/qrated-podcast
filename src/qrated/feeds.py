@@ -17,7 +17,7 @@ import yaml
 
 log = logging.getLogger(__name__)
 
-COVER_SIZE = 300
+COVER_SIZE = 600
 ITUNES_NS ="http://www.itunes.com/dtds/podcast-1.0.dtd"
 PODCAST_NS = "https://podcastindex.org/namespace/1.0"
 PODCAST_NS_OLD = "https://podcastindex.org/namespace/1.0/"
