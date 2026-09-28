@@ -75,7 +75,7 @@ Everything is set in `.env` (see [.env.example](.env.example)):
 | Texts | `LISTENER_NAME`, `INTRO_TEXT`, `ANNOUNCE_TEXT`, `OUTRO_TEXT` |
 | Schedule | `SCHEDULE_TIMES` (comma-separated `HH:MM`, local time), `TZ` |
 | Feed | `PUBLIC_BASE_URL`, `FEED_TITLE`, `FEED_DESCRIPTION`, `KEEP_EDITIONS` |
-| Cover | `COVER_MODEL`, `COVER_PROMPT` |
+| Cover | `COVER_MODEL`, `COVER_PROMPT`, `COVER_REFERENCE_IMAGE` |
 
 Text placeholders: `INTRO_TEXT` supports `{name}`, `{date}`, `{items}`, `{shows}`; `ANNOUNCE_TEXT` supports
 `{lead}`, `{podcast}`, `{episode_date}`, `{intro}`, `{title}`, `{name}`; `OUTRO_TEXT` supports `{name}`.
@@ -114,7 +114,9 @@ On the first build, if there is no cover yet, one is generated with `COVER_MODEL
 `<PUBLIC_BASE_URL>/cover.jpg` (the size Apple Podcasts requires), used in the feed (`itunes:image`) and on the
 homepage. Run `qrated make-cover` to generate a new one after changing the prompt. If generation fails, a gradient
 placeholder is used and generation is retried on the next build. Your own `data/assets/cover.jpg` (or `.png`) always
-wins. Podcast apps cache artwork, so a new cover can take a while to show up there.
+wins. To put a real person on the cover (for example yourself as the host), save a photo as
+`data/assets/cover_reference.jpg` (or point `COVER_REFERENCE_IMAGE` at it); it is sent to the image model along with
+the prompt, so describe in the prompt how the person should appear. Podcast apps cache artwork, so a new cover can take a while to show up there.
 
 ## Music bed and ding
 

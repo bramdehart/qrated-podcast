@@ -54,3 +54,42 @@ def test_prompt_placeholders(tmp_path):
     assert len(seen) == 1  # generated once, reused
     cover.ensure_cover(cfg, Client(), force=True)
     assert len(seen) == 2  # make-cover regenerates
+
+
+def test_reference_image_is_sent(tmp_path):
+    seen = []
+
+    class Client:
+        def image(self, prompt, reference=None, reference_type="image/jpeg"):
+            seen.append((reference, reference_type))
+            _png(tmp_path / "gen.png")
+            return (tmp_path / "gen.png").read_bytes()
+
+    cfg = Config(data_dir=tmp_path / "d")
+    cfg.assets_dir.mkdir(parents=True)
+    _png(cfg.assets_dir / "cover_reference.png", "red", "400x400")
+    cover.ensure_cover(cfg, Client())
+    assert seen[0][0] == (cfg.assets_dir / "cover_reference.png").read_bytes() and seen[0][1] == "image/png"
+
+
+def test_openrouter_image_payload_with_reference(monkeypatch):
+    import base64
+
+    from qrated.openrouter import OpenRouter
+
+    client = OpenRouter(Config(api_key="k"))
+    sent = {}
+
+    class Resp:
+        status_code = 200
+
+        def json(self):
+            url = "data:image/png;base64," + base64.b64encode(b"img").decode()
+            return {"choices": [{"message": {"images": [{"image_url": {"url": url}}]}}]}
+
+    monkeypatch.setattr(client.session, "post", lambda url, json, **k: (sent.update(json), Resp())[1])
+    assert client.image("draw", b"ref", "image/jpeg") == b"img"
+    content = sent["messages"][0]["content"]
+    assert content[0] == {"type": "text", "text": "draw"}
+    assert content[1]["image_url"]["url"] == "data:image/jpeg;base64," + base64.b64encode(b"ref").decode()
+    assert client.image("draw") == b"img" and sent["messages"][0]["content"] == "draw"

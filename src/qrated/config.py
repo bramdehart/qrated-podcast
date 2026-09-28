@@ -64,6 +64,7 @@ class Config:
     feed_description: str = DEFAULT_FEED_DESCRIPTION
     cover_model: str = "google/gemini-3.1-flash-image"
     cover_prompt: str = DEFAULT_COVER_PROMPT
+    cover_reference: str = ""
     keep_editions: int = 14
     data_dir: Path = Path("/data")
     feeds_file: Path = Path("/config/feeds.yaml")
@@ -130,6 +131,7 @@ class Config:
             feed_description=_env(e, "FEED_DESCRIPTION", d.feed_description),
             cover_model=_env(e, "COVER_MODEL", d.cover_model),
             cover_prompt=_env(e, "COVER_PROMPT", d.cover_prompt),
+            cover_reference=_env(e, "COVER_REFERENCE_IMAGE", d.cover_reference),
             keep_editions=int(_env(e, "KEEP_EDITIONS", str(d.keep_editions))),
             data_dir=Path(_env(e, "DATA_DIR", "/data")),
             feeds_file=Path(_env(e, "FEEDS_FILE", "/config/feeds.yaml")),

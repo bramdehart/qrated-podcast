@@ -16,6 +16,8 @@ log = logging.getLogger(__name__)
 PUBLISHED_SIZE = 1400
 USER_COVERS = ("cover.jpg", "cover.jpeg", "cover.png", "cover.webp")
 GENERATED = "cover.png"
+REFERENCES = ("cover_reference.jpg", "cover_reference.jpeg", "cover_reference.png", "cover_reference.webp")
+REFERENCE_TYPES = {".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".png": "image/png", ".webp": "image/webp"}
 FALLBACK = "cover_fallback.png"
 
 
@@ -34,6 +36,23 @@ def cover_url(cfg: Config, absolute: bool = False) -> str | None:
 
 def _existing_source(cfg: Config) -> Path | None:
     for name in USER_COVERS:
+        path = cfg.assets_dir / name
+        if path.exists():
+            return path
+    return None
+
+
+def reference_image(cfg: Config) -> Path | None:
+    """Optional reference photo for cover generation: COVER_REFERENCE_IMAGE or assets/cover_reference.*"""
+    if cfg.cover_reference:
+        path = Path(cfg.cover_reference)
+        if not path.is_absolute():
+            path = cfg.assets_dir / path
+        if path.exists():
+            return path
+        log.warning("COVER_REFERENCE_IMAGE %s does not exist; generating without it", path)
+        return None
+    for name in REFERENCES:
         path = cfg.assets_dir / name
         if path.exists():
             return path
@@ -77,7 +96,12 @@ def ensure_cover(cfg: Config, client: OpenRouter, force: bool = False) -> Path |
         raw = cfg.assets_dir / "cover_raw.bin"
         try:
             prompt = render(cfg.cover_prompt, title=cfg.feed_title, name=cfg.listener_name)
-            raw.write_bytes(client.image(prompt))
+            ref = reference_image(cfg)
+            if ref is not None:
+                log.info("Using %s as reference image for the cover", ref)
+                raw.write_bytes(client.image(prompt, ref.read_bytes(), REFERENCE_TYPES.get(ref.suffix.lower(), "image/jpeg")))
+            else:
+                raw.write_bytes(client.image(prompt))
             src = cfg.assets_dir / GENERATED
             run_ffmpeg("-i", str(raw), "-frames:v", "1", str(src))
             log.info("Generated cover art with %s", cfg.cover_model)

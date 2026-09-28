@@ -126,13 +126,20 @@ class OpenRouter:
             raise OpenRouterError("music generation returned no audio")
         return base64.b64decode("".join(parts))
 
-    def image(self, prompt: str) -> bytes:
-        """Generate an image via /chat/completions with the image modality; returns the decoded bytes."""
+    def image(self, prompt: str, reference: bytes | None = None, reference_type: str = "image/jpeg") -> bytes:
+        """Generate an image via /chat/completions with the image modality; returns the decoded bytes.
+
+        An optional reference image (e.g. a portrait of the host) is sent along with the prompt.
+        """
+        content: str | list = prompt
+        if reference:
+            url = f"data:{reference_type};base64,{base64.b64encode(reference).decode()}"
+            content = [{"type": "text", "text": prompt}, {"type": "image_url", "image_url": {"url": url}}]
         body = {
             "model": self.cfg.cover_model,
             "modalities": ["image", "text"],
             "image_config": {"aspect_ratio": "1:1"},
-            "messages": [{"role": "user", "content": prompt}],
+            "messages": [{"role": "user", "content": content}],
         }
         data = self._post("/chat/completions", body).json()
         try:
