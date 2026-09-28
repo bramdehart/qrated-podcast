@@ -47,6 +47,32 @@ def test_render_index(tmp_path):
     assert "1 featured" in page
 
 
+def test_render_index_chapters(tmp_path):
+    import json
+    import re
+
+    conn = _seed(tmp_path)
+    conn.execute("UPDATE items SET chapter_start=12.5, chapter_end=150")
+    conn.commit()
+    page = render_index(conn, Config(feed_title="Q-rated", data_dir=tmp_path))
+    blob = re.search(r'<script type="application/json">(.*?)</script>', page).group(1)
+    chapters = json.loads(blob)["chapters"]
+    assert [c["kind"] for c in chapters] == ["intro", "item", "outro"]
+    assert chapters[1]["start"] == 12.5 and chapters[1]["art"] == "covers/abc.jpg"
+    assert chapters[1]["title"] == "Big <story>"  # raw in JSON, escaped when rendered by JS
+    assert chapters[2] == {**chapters[2], "start": 150, "end": 600}
+    assert 'data-chapter="1"' in page and '<span class="at">0:12</span>' in page
+    assert 'class="seg k-item"' in page
+
+
+def test_json_script_cannot_break_out(tmp_path):
+    conn = _seed(tmp_path)
+    conn.execute("UPDATE items SET title='</script><b>x', chapter_start=1, chapter_end=2")
+    conn.commit()
+    page = render_index(conn, Config(data_dir=tmp_path))
+    assert "</script><b>x" not in page
+
+
 def test_render_index_empty_and_write(tmp_path):
     conn = db.connect(tmp_path / "e.db")
     cfg = Config(data_dir=tmp_path / "d")

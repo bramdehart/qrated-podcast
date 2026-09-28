@@ -25,9 +25,10 @@ log = logging.getLogger(__name__)
 def show_notes(items: list[dict]) -> str:
     lis = []
     for it in items:
+        at = f"[{mmss(it['chapter_start'])}] " if it.get("chapter_start") is not None else ""
         lis.append(
-            "<li><b>{title}</b> &mdash; {podcast}, <i>{episode}</i> ({start}&ndash;{end})<br/>{summary}</li>".format(
-                title=html.escape(it["title"]), podcast=html.escape(it["podcast"]),
+            "<li>{at}<b>{title}</b> &mdash; {podcast}, <i>{episode}</i> ({start}&ndash;{end})<br/>{summary}</li>".format(
+                at=at, title=html.escape(it["title"]), podcast=html.escape(it["podcast"]),
                 episode=html.escape(it["episode_title"] or ""),
                 start=mmss(it["start_sec"]), end=mmss(it["end_sec"]),
                 summary=html.escape(it["summary"]),
@@ -82,12 +83,21 @@ def build_edition(conn: sqlite3.Connection, client: OpenRouter, cfg: Config, now
             voice = audio.pcm_to_wav(client.tts(text), work / f"{name}_voice.wav", cfg.tts_sample_rate)
             return audio.speech_over_bed(voice, bed, work / f"{name}.wav", cfg, rng)
 
+        durations: dict[Path, float] = {}
+
+        def length(path: Path) -> float:
+            if path not in durations:
+                durations[path] = audio.probe_duration(path)
+            return durations[path]
+
         parts.append(announce(
             render(cfg.intro_text, name=cfg.listener_name, date=spoken_date(now),
                    items=len(usable), shows=shows),
             "opening",
         ))
+        offset = length(parts[0])
         built: list[sqlite3.Row] = []
+        chapters: list[tuple[float, float]] = []  # (start, end) of each item in the edition
         for idx, row in enumerate(usable):
             try:
                 text = render(
@@ -103,7 +113,11 @@ def build_edition(conn: sqlite3.Connection, client: OpenRouter, cfg: Config, now
             except Exception as exc:  # noqa: BLE001
                 log.warning("Skipping item %s: %s", row["id"], exc)
                 continue
-            parts += [ding, ann, frag, silence]
+            segment = [ding, ann, frag, silence]
+            end = offset + sum(length(p) for p in segment)
+            chapters.append((offset, end))
+            offset = end
+            parts += segment
             built.append(row)
         if not built:
             log.warning("All items failed; not building an edition")
@@ -116,16 +130,19 @@ def build_edition(conn: sqlite3.Connection, client: OpenRouter, cfg: Config, now
         out = audio.concat_to_mp3(parts, cfg.editions_dir / file_name, title, work)
         duration = audio.probe_duration(out)
 
-        notes = show_notes([dict(r) for r in built])
+        notes = show_notes([dict(r, chapter_start=c[0]) for r, c in zip(built, chapters)])
         cur = conn.execute(
             "INSERT INTO editions (created_at, title, file_name, duration, size_bytes, description)"
             " VALUES (?,?,?,?,?,?)",
             (now.isoformat(), title, file_name, duration, out.stat().st_size, notes),
         )
         edition_id = cur.lastrowid
-        for pos, row in enumerate(built, start=1):
-            conn.execute("UPDATE items SET status='used', edition_id=?, position=? WHERE id=?",
-                         (edition_id, pos, row["id"]))
+        for pos, (row, (c_start, c_end)) in enumerate(zip(built, chapters), start=1):
+            conn.execute(
+                "UPDATE items SET status='used', edition_id=?, position=?, chapter_start=?, chapter_end=?"
+                " WHERE id=?",
+                (edition_id, pos, c_start, c_end, row["id"]),
+            )
         conn.execute("UPDATE items SET status='rejected' WHERE status='candidate'")
         conn.execute(
             "UPDATE episodes SET status='used' WHERE guid IN"

@@ -157,6 +157,12 @@ def test_full_pipeline(tmp_path, servers):
     assert f'src="covers/{covers[0].name}"' in page
     assert "Big story" in page and "Podcasts included (1)" in page
 
+    # chapter offsets of the story inside the edition (after opening + ding)
+    item = conn.execute("SELECT * FROM items").fetchone()
+    assert 4 < item["chapter_start"] < item["chapter_end"] <= duration + 0.5
+    assert item["chapter_end"] - item["chapter_start"] > 120  # ding + announcement + fragment + silence
+    assert 'data-chapter="1"' in page and "[0:" in ed["description"]
+
     # second run: nothing new -> no second edition, no more chat calls
     cmd_run(cfg, conn)
     assert state["chat_calls"] == 1

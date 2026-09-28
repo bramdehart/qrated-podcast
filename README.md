@@ -22,8 +22,11 @@ text-to-speech, music) goes through [OpenRouter](https://openrouter.ai) with a s
 5. **Audio**: only the needed MP3s are downloaded, fragments are cut with ffmpeg, faded and loudness-normalized
    (-16 LUFS); sources and intermediates are deleted afterwards.
 6. **Announcements**: English TTS over the music bed, with ducking.
-7. **Homepage**: `index.html` at the site root shows the channel, the list of editions (select one to see its
-   stories and play it), thumbnails of the shows featured, and an inventory of all podcasts in `feeds.yaml`. Cover art
+7. **Homepage**: `index.html` at the site root shows the channel, the list of editions, thumbnails of the shows
+   featured, and an inventory of all podcasts in `feeds.yaml`. Each edition has a chapter-aware player: the timeline is
+   split into stories, hovering it previews the cover art and info of that section, and clicking a story jumps to it
+   (keys: space play/pause, j/l -/+15 s, p/n previous/next story; lock-screen controls show the current story).
+   Story offsets are recorded at build time, so editions built before this feature play without chapters. Cover art
    is downloaded once into `public/covers/` (no hotlinking). It is regenerated after every fetch and build.
 8. **Feed**: `feed.xml` (RSS 2.0 with iTunes tags) lists the newest `KEEP_EDITIONS` editions; older ones are deleted.
 

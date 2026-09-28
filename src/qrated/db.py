@@ -48,11 +48,21 @@ CREATE TABLE IF NOT EXISTS items (
     score REAL,
     status TEXT NOT NULL DEFAULT 'candidate',
     edition_id INTEGER,
-    position INTEGER
+    position INTEGER,
+    chapter_start REAL,
+    chapter_end REAL
 );
 CREATE INDEX IF NOT EXISTS idx_episodes_status ON episodes(status);
 CREATE INDEX IF NOT EXISTS idx_items_status ON items(status);
 """
+
+# Columns added after the first release; applied to existing databases on connect.
+MIGRATIONS = [
+    ("feeds", "image_url", "TEXT"),
+    ("feeds", "image_file", "TEXT"),
+    ("items", "chapter_start", "REAL"),
+    ("items", "chapter_end", "REAL"),
+]
 
 
 def connect(path: Path | str) -> sqlite3.Connection:
@@ -63,9 +73,9 @@ def connect(path: Path | str) -> sqlite3.Connection:
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA journal_mode=WAL")
     conn.executescript(SCHEMA)
-    cols = {r["name"] for r in conn.execute("PRAGMA table_info(feeds)")}
-    for col in ("image_url", "image_file"):  # migrate databases created before cover art
+    for table, col, kind in MIGRATIONS:
+        cols = {r["name"] for r in conn.execute(f"PRAGMA table_info({table})")}
         if col not in cols:
-            conn.execute(f"ALTER TABLE feeds ADD COLUMN {col} TEXT")
+            conn.execute(f"ALTER TABLE {table} ADD COLUMN {col} {kind}")
     conn.commit()
     return conn
