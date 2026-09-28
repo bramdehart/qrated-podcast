@@ -30,6 +30,8 @@ font:800 44px/1 ui-sans-serif,system-ui,sans-serif;background:linear-gradient(13
 .actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .btn{display:inline-flex;align-items:center;gap:6px;padding:.45rem 1rem;border-radius:999px;border:1px solid var(--line);
 background:var(--card);text-decoration:none;color:var(--fg);cursor:pointer;font-size:.92rem}
+.btn svg{width:18px;height:18px;fill:currentColor;flex:none}
+.btn .ok,.btn.done .cp{display:none}.btn.done .ok{display:block}
 .btn.primary{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
 .stats{color:var(--muted);font-size:.9rem;margin-top:.6rem}
 h2{font-size:.8rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:2.5rem 0 .9rem}
@@ -213,7 +215,8 @@ JS = r"""
 
   var copy=document.querySelector('.copy');
   if(copy&&navigator.clipboard)copy.addEventListener('click',function(){navigator.clipboard.writeText(copy.dataset.url).then(function(){
-    var t=copy.textContent;copy.textContent='Copied';setTimeout(function(){copy.textContent=t;},1500);});});
+    var label=copy.querySelector('span'),t=label.textContent;copy.classList.add('done');label.textContent='Copied';
+    setTimeout(function(){copy.classList.remove('done');label.textContent=t;},1500);});});
   else if(copy)copy.hidden=true;
 })();
 """
@@ -222,6 +225,12 @@ ICON_PLAY = '<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>'
 ICON_PREV = '<svg viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6 8.5 6V6z"/></svg>'
 ICON_DOWNLOAD = '<svg viewBox="0 0 24 24"><path d="M11 4h2v9l3.5-3.5 1.4 1.4L12 16.8 6.1 10.9l1.4-1.4L11 13zM5 18h14v2H5z"/></svg>'
 ICON_CHEVRON = '<svg viewBox="0 0 24 24"><path d="M7.4 8.6 12 13.2l4.6-4.6L18 10l-6 6-6-6z"/></svg>'
+ICON_RSS = ('<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="18" r="2.2"/>'
+            '<path d="M4 10.5v2.7a6.8 6.8 0 0 1 6.8 6.8h2.7A9.5 9.5 0 0 0 4 10.5zm0-5.3v2.7A12.1 12.1 0 0 1 16.1 20h2.7'
+            'A14.8 14.8 0 0 0 4 5.2z"/></svg>')
+ICON_COPY = ('<svg class="cp" viewBox="0 0 24 24" aria-hidden="true"><path d="M16 1H4a2 2 0 0 0-2 2v14h2V3h12zm3 4H8'
+             'a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2zm0 16H8V7h11z"/></svg>'
+             '<svg class="ok" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4z"/></svg>')
 ICON_NEXT = '<svg viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6zm10-12h2v12h-2z"/></svg>'
 
 
@@ -382,8 +391,8 @@ def render_index(conn: sqlite3.Connection, cfg: Config) -> str:
         +
         f"<h1>{_e(cfg.feed_title)}</h1>"
         f"<p>{_e(description)}</p>"
-        '<div class="actions"><a class="btn primary" href="feed.xml">Subscribe via RSS</a>'
-        f'<button class="btn copy" data-url="{_e(feed_url)}">Copy feed URL</button></div>'
+        f'<div class="actions"><a class="btn primary" href="feed.xml">{ICON_RSS}<span>Subscribe via RSS</span></a>'
+        f'<button class="btn copy" data-url="{_e(feed_url)}">{ICON_COPY}<span>Copy feed URL</span></button></div>'
         f'<div class="stats">{stats}</div></div></header>'
         f"<h2>Editions</h2>{layout}"
         f'<h2>Podcasts included ({len(pods)})</h2><div class="grid">{inventory}</div>'
