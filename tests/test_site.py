@@ -36,51 +36,42 @@ def _seed(tmp_path):
     return conn
 
 
-def test_render_index(tmp_path):
-    conn = _seed(tmp_path)
-    page = render_index(conn, Config(feed_title="Q-rated", data_dir=tmp_path))
-    assert 'src="editions/qrated_x.mp3"' in page  # player
-    assert 'src="covers/abc.jpg"' in page  # channel thumb
-    assert "Big &lt;story&gt;" in page and "Show &lt;One&gt;" in page  # escaped
-    assert "1:05&ndash;3:05" in page
-    assert "Shows in the mix <small>2</small>" in page and "Show Two" in page  # inventory incl. feeds w/o cover
-    assert "1 story featured" in page
-
-
-def test_render_index_chapters(tmp_path):
+def _data(page):
     import json
     import re
 
+    return json.loads(re.search(r'<script type="application/json" id="qrated-data">(.*?)</script>', page).group(1))
+
+
+def test_render_index_sheet_and_fallback(tmp_path):
     conn = _seed(tmp_path)
-    conn.execute("UPDATE items SET chapter_start=12.5, chapter_end=150")
-    conn.commit()
     page = render_index(conn, Config(feed_title="Q-rated", data_dir=tmp_path))
-    blob = re.search(r'<script type="application/json">(.*?)</script>', page).group(1)
-    chapters = json.loads(blob)["chapters"]
-    assert [c["kind"] for c in chapters] == ["intro", "item", "outro"]
-    assert chapters[1]["start"] == 12.5 and chapters[1]["art"] == "covers/abc.jpg"
-    assert chapters[1]["title"] == "Big <story>"  # raw in JSON, escaped when rendered by JS
-    assert chapters[2] == {**chapters[2], "start": 150, "end": 600}
-    assert 'data-chapter="1"' in page and '<span class="at">0:12</span>' in page
-    assert 'class="seg k-item"' in page
+    assert 'href="editions/qrated_x.mp3" download' in page  # episode download in the info sheet
+    assert 'src="editions/qrated_x.mp3"' in page  # <noscript> fallback player
+    assert 'src="covers/abc.jpg"' in page  # show thumbnails
+    assert "Big &lt;story&gt;" in page and "Show &lt;One&gt;" in page  # escaped in HTML
+    assert "Shows in the mix <small>2</small>" in page and "Show Two" in page
+    assert 'data-goto="1"' in page and 'class="feed"' in page
 
 
-def test_reels_only_with_chapters(tmp_path):
-    import json
-    import re
-
+def test_slides_from_chapters(tmp_path):
     conn = _seed(tmp_path)
-    page = render_index(conn, Config(data_dir=tmp_path))
-    assert 'data-reels="1"' not in page  # no chapter data -> no reels entry points
-    assert 'class="reels"' in page  # overlay markup is always present (hidden)
-
     conn.execute("UPDATE items SET chapter_start=12.5, chapter_end=150")
     conn.commit()
-    page = render_index(conn, Config(data_dir=tmp_path))
-    assert page.count('data-reels="1"') == 2  # hero button and episode row button
-    data = json.loads(re.search(r'<script type="application/json">(.*?)</script>', page).group(1))
-    story = data["chapters"][1]
-    assert story["summary"] == "A summary." and story["episode"] == "Ep A" and data["date"]
+    data = _data(render_index(conn, Config(feed_title="Q-rated", data_dir=tmp_path)))
+    assert data["slides"] == [{
+        "ed": 1, "n": 0, "start": 12.5, "end": 150, "title": "Big <story>", "podcast": "Show <One>",
+        "summary": "A summary.", "episode": "Ep A", "art": "covers/abc.jpg",
+    }]
+    assert data["editions"][0]["file"] == "editions/qrated_x.mp3" and data["editions"][0]["count"] == 1
+
+
+def test_edition_without_chapters_is_one_full_slide(tmp_path):
+    conn = _seed(tmp_path)
+    data = _data(render_index(conn, Config(data_dir=tmp_path)))
+    (slide,) = data["slides"]
+    assert slide["start"] == 0 and slide["end"] == 600 and slide["episode"] == "Full episode"
+    assert "Big <story>" in slide["summary"]
 
 
 def test_json_script_cannot_break_out(tmp_path):
@@ -96,7 +87,7 @@ def test_render_index_empty_and_write(tmp_path):
     cfg = Config(data_dir=tmp_path / "d")
     path = write_index(conn, cfg)
     text = open(path, encoding="utf-8").read()
-    assert "No editions yet" in text and text.startswith("<!doctype html>")
+    assert "No episodes yet" in text and text.startswith("<!doctype html>")
 
 
 def test_db_migration_adds_cover_columns(tmp_path):

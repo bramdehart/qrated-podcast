@@ -3,7 +3,7 @@
 A self-hosted, AI-curated **daily podcast**. Q-rated follows the podcasts you list in `feeds.yaml` (as many as
 you like), finds the most interesting self-contained fragments in their transcripts, and stitches them into one
 personal episode: a spoken intro over a music bed (generated from your own prompt), a short ding and an
-announcement before every fragment, and a closing line. The result is served as a normal podcast RSS feed and a homepage with a chapter-aware player.
+announcement before every fragment, and a closing line. The result is served as a normal podcast RSS feed and a Reels-style homepage where you swipe through the stories.
 
 **Demo:** see and hear a live edition at [https://podcast.bramdehart.nl](https://podcast.bramdehart.nl/#ed-4).
 
@@ -24,16 +24,14 @@ text-to-speech, music) goes through [OpenRouter](https://openrouter.ai) with a s
 5. **Audio**: only the needed MP3s are downloaded, fragments are cut with ffmpeg, faded and loudness-normalized
    (-16 LUFS); sources and intermediates are deleted afterwards.
 6. **Announcements**: English TTS over the music bed, with ducking.
-7. **Homepage**: `index.html` at the site root is an Apple Podcasts-style show page: the cover and description, a
-   "Latest Episode" button, the episodes as expandable rows (newest open) with a play button each, and the shows in
-   the mix (all podcasts in `feeds.yaml`). Each edition has a chapter-aware player: the timeline is split
-   into stories with show covers above it; hovering the timeline or a cover previews that story's art and info, and
-   clicking a cover or a story jumps to it (keys: space play/pause, j/l -/+15 s, p/n previous/next story; lock-screen
-   controls show the current story). **Reels** opens a full-screen vertical feed: swipe up through the stories
-   of an episode like Instagram Reels; each one autoplays from its announcement and the next starts when it ends
-   (tap to pause, arrow keys on desktop). Story offsets are recorded at build time; run `qrated rebuild` to add them to
-   the newest edition if it was built before this feature. Cover art
-   is downloaded once and stored as a 600 px thumbnail in `public/covers/` (no hotlinking). It is regenerated after every fetch and build.
+7. **Homepage**: `index.html` at the site root is a full-screen, Instagram Reels-style feed of every story, newest
+   episode first. Swipe up (or use the arrow keys) to move through the stories; each one plays from its announcement
+   and the next starts automatically, continuing into older episodes. Tap to pause; lock-screen controls show the
+   current story. The info panel (the channel logo or the (i) button) has the description, Subscribe and Copy feed
+   URL, the episode list (jump to an episode or download its MP3) and the shows in the mix. `#ed-<id>` links start
+   at that episode. Story offsets are recorded at build time; episodes built before that play as one full-episode
+   slide (run `qrated rebuild` to split the newest one into stories). Show cover art is downloaded once and stored as
+   a 600 px thumbnail in `public/covers/` (no hotlinking). The page is regenerated after every fetch and build.
 8. **Feed**: `feed.xml` (RSS 2.0 with iTunes tags) lists the newest `KEEP_EDITIONS` editions; older ones are deleted.
 
 ## Install
